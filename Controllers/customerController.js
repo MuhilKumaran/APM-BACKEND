@@ -11,7 +11,9 @@ const pdf = require("html-pdf");
 const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 const path = require("path");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const { executablePath } = require("puppeteer");
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -690,7 +692,11 @@ exports.verifyOrder = async (req, res) => {
       );
 
       // Launch Puppeteer browser
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({
+        executablePath: executablePath(), // Dynamically resolve Chrome path
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"], // Required for Render environment
+      });
       const page = await browser.newPage();
 
       // Set HTML content to Puppeteer page
