@@ -686,31 +686,31 @@ exports.verifyOrder = async (req, res) => {
         itemTotal: totalAmount,
         finalAmount: finalTotalAmount,
       };
-      const html = await ejs.renderFile(
-        path.join(__dirname, "views", "bill.ejs"),
-        { order }
-      );
+      // const html = await ejs.renderFile(
+      //   path.join(__dirname, "views", "bill.ejs"),
+      //   { order }
+      // );
 
       // Launch Puppeteer browser
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],  // Required for Render environment
-      });
-      const page = await browser.newPage();
+      // const browser = await puppeteer.launch({
+      //   headless: true,
+      //   args: ['--no-sandbox', '--disable-setuid-sandbox'],  // Required for Render environment
+      // });
+      // const page = await browser.newPage();
 
-      // Set HTML content to Puppeteer page
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      // // Set HTML content to Puppeteer page
+      // await page.setContent(html, { waitUntil: "networkidle0" });
 
-      // Generate PDF from the page content
-      const pdfBuffer = await page.pdf({
-        format: "A5",
-        printBackground: false,
-      });
+      // // Generate PDF from the page content
+      // const pdfBuffer = await page.pdf({
+      //   format: "A5",
+      //   printBackground: false,
+      // });
 
-      // Close Puppeteer browser
-      await browser.close();
+      // // Close Puppeteer browser
+      // await browser.close();
 
-      console.log("bill data:", billData);
+      // console.log("bill data:", billData);
 
       // Configure Nodemailer for email sending
       const transporter = nodemailer.createTransport({
@@ -726,13 +726,13 @@ exports.verifyOrder = async (req, res) => {
         to: [email, process.env.GMAIL_USER],
         subject: `Invoice - Order ${order_id}`,
         text: `Dear ${userName},\n\n Please find attached the invoice for your recent purchase.\n\nThank you for shopping with us!`,
-        attachments: [
-          {
-            filename: `invoice ${order_id}.pdf`,
-            content: pdfBuffer, // PDF buffer from Puppeteer
-            contentType: "application/pdf",
-          },
-        ],
+        // attachments: [
+        //   {
+        //     filename: `invoice ${order_id}.pdf`,
+        //     content: pdfBuffer, // PDF buffer from Puppeteer
+        //     contentType: "application/pdf",
+        //   },
+        // ],
       };
 
       // Send email with the PDF attachment
