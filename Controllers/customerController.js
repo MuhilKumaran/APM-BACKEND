@@ -1021,7 +1021,7 @@ exports.cancelOrder = async (req, res) => {
     });
     if (updateResult.affectedRows > 0) {
       const response = axios.post(
-        "https://annapoornamithai.com/customers/refund-order",
+        "https://annapoorna-test-backend.onrender.com/customers/refund-order",
         { order_id }
       );
       if ((await response).status === 200) {

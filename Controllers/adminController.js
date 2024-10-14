@@ -382,7 +382,7 @@ exports.cancelOrder = async (req, res) => {
     });
     if (result.affectedRows > 0) {
       const response = axios.post(
-        "https://annapoornamithai.com/admin/refund-order",
+        "https://annapoorna-test-backend.onrender.com/admin/refund-order",
         { order_id }
       );
       if ((await response).status === 200) {
