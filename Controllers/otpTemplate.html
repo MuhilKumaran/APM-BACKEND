@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .container {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      .brand {
+        color: #d9230f;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .otp {
+        font-size: 22px;
+        margin: 20px 0;
+        font-weight: bold;
+      }
+      .message {
+        font-size: 18px;
+        color: #555;
+      }
+      .footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="brand">Annapoorna Mithai</div>
+      <p class="message">Your OTP code is:</p>
+      <p class="otp">{{OTP}}</p>
+      <p class="message">Please use this code to verify your account. </p>
+      <div class="footer">
+        <p>If you didn't request this, please ignore this email.</p>
+      </div>
+    </div>
+  </body>
+</html>
