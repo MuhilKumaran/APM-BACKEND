@@ -13,7 +13,7 @@ router
   .post(adminController.getOrdersByDeliveryStatus);
 
 router
-  .route("/cancel-order").post(adminController.cancelOrder);
+  .route("/cancel-order").patch(adminController.cancelOrder);
 
 router
   .route("/refund-order")
