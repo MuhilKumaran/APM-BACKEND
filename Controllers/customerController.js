@@ -1067,7 +1067,7 @@ exports.refundOrder = async (req, res) => {
     const orderResult = refundResult[0]; // Corrected this line
     const razorpayPaymentId = orderResult.razorpay_payment_id;
     const refundAmount = Math.floor(orderResult.total_price) * 100;
-
+     console.log(refundAmount);
     if (razorpayPaymentId) {
       const refund = await razorpay.payments.refund(razorpayPaymentId, {
         // Corrected variable name
