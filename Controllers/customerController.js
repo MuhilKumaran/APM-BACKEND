@@ -1039,6 +1039,7 @@ exports.cancelOrder = async (req, res) => {
     }
     return res.status(404).json({ status: false, message: "Order not Found" });
   } catch (error) {
+    console.log(error);
     return res
       .status(500)
       .json({ status: false, message: " Error in Cancelling Orders " });

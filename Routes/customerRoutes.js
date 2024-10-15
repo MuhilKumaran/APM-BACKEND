@@ -23,9 +23,7 @@ router
   .route("/verify-order")
   .post(authenticate.authenticateCustomer, customerController.verifyOrder);
 
-router
-  .route("/refund-order")
-  .post(authenticate.authenticateCustomer, customerController.refundOrder);
+router.route("/refund-order").post(customerController.refundOrder);
 
 router.route("/contact-us").post(customerController.sendContactUs);
 
