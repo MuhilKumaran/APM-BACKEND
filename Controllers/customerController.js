@@ -799,7 +799,7 @@ exports.verifyOrder = async (req, res) => {
           <h3>Annapoorna Mithai</h3>
           <p>
             Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
-            Contact: annapoornamithai@gmail.com "&nbsp;" "&nbsp;" GSTIN - 33BCTPA8028E2ZP
+            Contact: annapoornamithai@gmail.com           GSTIN - 33BCTPA8028E2ZP
           </p>
         </div>
         <hr />
@@ -853,19 +853,19 @@ exports.verifyOrder = async (req, res) => {
             </tbody>
             <tfoot>
               <tr class="lineup">
-                <td colspan="3">Item Total</td>
+                <td colspan="5">Item Total</td>
                 <td>₹${itemTotal}</td>
               </tr>
               <tr class="line">
-                <td colspan="3">GST(12%)</td>
+                <td colspan="5">Total GST</td>
                 <td>₹${gst}</td>
               </tr>
               <tr class="line">
-                <td colspan="3">Delivery</td>
+                <td colspan="5">Delivery</td>
                 <td>₹${delivery}</td>
               </tr>
               <tr>
-                <td colspan="3"><strong>Total</strong></td>
+                <td colspan="5"><strong>Total</strong></td>
                 <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
               </tr>
             </tfoot>
