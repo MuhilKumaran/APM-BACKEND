@@ -20,6 +20,7 @@ app.use(
       "http://localhost:3000",
       "https://annapoorna-mithais.onrender.com",
       "https://www.annapoornamithai.com/",
+      "https://annapoorna-test-backend.onrender.com",
     ], // or your production frontend URL
     credentials: true,
   })
