@@ -1065,8 +1065,8 @@ exports.refundOrder = async (req, res) => {
         .status(404)
         .json({ status: false, message: "Order not found" });
     }
-
     const orderResult = refundResult[0]; // Corrected this line
+    console.log(orderResult);
     const razorpayPaymentId = orderResult.razorpay_payment_id;
     const refundAmount = Math.floor(orderResult.total_price) * 100;
     console.log(refundAmount);
