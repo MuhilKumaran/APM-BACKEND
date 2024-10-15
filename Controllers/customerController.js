@@ -750,7 +750,7 @@ exports.verifyOrder = async (req, res) => {
         order_id,
       };
 
-      orderReceivedMessage(messageData);
+      // orderReceivedMessage(messageData);
       res
         .status(200)
         .json({ status: true, message: "Payment Successful and email sent" });
