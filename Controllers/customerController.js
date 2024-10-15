@@ -713,6 +713,167 @@ exports.verifyOrder = async (req, res) => {
       // console.log("bill data:", billData);
 
       // Configure Nodemailer for email sending
+      console.log("gereating receipt");
+
+      const billData = {
+        orderIdrec: order_id,
+        orderDate: currentDate,
+        preOrderDate: preOrderDate,
+        paymentMethod: "Online",
+        customerName: userName,
+        customerAddress: address,
+        customerMobile: mobile,
+        customerEmail: email,
+        orderItems: orderItems,
+        itemTotal: totalAmount,
+        finalAmount: finalTotalAmount,
+      };
+      const {
+        orderIdrec,
+        orderDate,
+        paymentMethod,
+        customerName,
+        customerAddress,
+        customerMobile,
+        customerEmail,
+        itemTotal,
+        finalAmount,
+      } = billData;
+
+      console.log("bill data:", billData);
+      const receipt = ` <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Invoice</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+          background-color: #f4f4f4;
+          font-size: 8px;
+        }
+        .invoice {
+          background-color: #fff;
+          padding: 15px;
+          margin: 0 auto;
+          max-width: 500px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .details-container {
+          display: flex;
+          justify-content: space-between;
+        }
+        .order-details {
+          width: 48%;
+        }
+        .order-summary table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .line {
+          border-bottom: 1px solid #000;
+        }
+        .order-summary th,
+        .order-summary td {
+          padding: 6px;
+          text-align: left;
+        }
+        .order-summary tfoot td {
+          font-weight: bold;
+        }
+        .lineup {
+          border-top: 1px solid #000;
+        }
+        .order-summary tfoot tr:last-child td {
+          font-size: 1.1em;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice">
+        <div class="company-details">
+          <h3>Annapoorna Mithai</h3>
+          <p>
+            Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
+            Contact: annapoornamithai@gmail.com "&nbsp;" "&nbsp;" GSTIN - 33BCTPA8028E2ZP
+          </p>
+        </div>
+        <hr />
+        <div class="details-container">
+          <div class="order-details">
+            <h3>Order details</h3>
+            <p>Order Id : ${orderIdrec}</p>
+            <p>Order Date : ${orderDate}</p>
+            <p>Payment: ${paymentMethod}</p>
+            ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
+          </div>
+          <div class="customer-details">
+            <h3>Customer details</h3>
+            <p>
+              Name: ${customerName}<br />
+              Address: ${customerAddress}<br />
+              Mobile: ${customerMobile}<br />
+              Email: ${customerEmail}
+            </p>
+          </div>
+        </div>
+        <div class="order-summary">
+          <h3>Order summary</h3>
+          <hr />
+          <table>
+            <thead>
+              <tr class="line">
+                <th>Item</th>
+                <th>Qty</th>
+                <th>GST %</th>
+                <th>GST ₹</th>
+                <th>Price/Qty</th>
+                <th>Total Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${orderItems
+                .map(
+                  (item) => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.gst}</td>
+                  <td>${(item.price * item.gst) / 100}</td>
+                  <td>₹${(Number(item.price) / item.quantity).toFixed(2)}</td>
+                  <td>₹${item.price}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+            <tfoot>
+              <tr class="lineup">
+                <td colspan="3">Item Total</td>
+                <td>₹${itemTotal}</td>
+              </tr>
+              <tr class="line">
+                <td colspan="3">GST(12%)</td>
+                <td>₹${gst}</td>
+              </tr>
+              <tr class="line">
+                <td colspan="3">Delivery</td>
+                <td>₹${delivery}</td>
+              </tr>
+              <tr>
+                <td colspan="3"><strong>Total</strong></td>
+                <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </body>
+  </html>`;
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -726,13 +887,7 @@ exports.verifyOrder = async (req, res) => {
         to: [email, process.env.GMAIL_USER],
         subject: `Invoice - Order ${order_id}`,
         text: `Dear ${userName},\n\n Please find attached the invoice for your recent purchase.\n\nThank you for shopping with us!`,
-        // attachments: [
-        //   {
-        //     filename: `invoice ${order_id}.pdf`,
-        //     content: pdfBuffer, // PDF buffer from Puppeteer
-        //     contentType: "application/pdf",
-        //   },
-        // ],
+        html: receipt,
       };
 
       // Send email with the PDF attachment
@@ -1012,7 +1167,7 @@ exports.cancelOrder = async (req, res) => {
     const cancelSQL =
       "UPDATE customer_orders SET order_status = ?,customer_cancellation WHERE order_id = ?";
     const updateResult = await new Promise((resolve, reject) => {
-      db.query(cancelSQL, ["cancelled",0, order_id], (err, result) => {
+      db.query(cancelSQL, ["cancelled", 0, order_id], (err, result) => {
         if (err) {
           return reject(err);
         }
@@ -1020,10 +1175,18 @@ exports.cancelOrder = async (req, res) => {
       });
     });
     if (updateResult.affectedRows > 0) {
+      const authToken = req.headers.authorization;
+      console.log(authToken);
       console.log("refund hit");
       const response = axios.post(
         "https://annapoorna-test-backend.onrender.com/customers/refund-order",
-        { order_id }
+        { order_id },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
       );
       if ((await response).status === 200) {
         console.log("refund success");
