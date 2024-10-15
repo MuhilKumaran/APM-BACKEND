@@ -245,7 +245,7 @@ const orderReceivedMessage = async (messageData) => {
   // Send message to customer
   const customerData = {
     ...commonData,
-    destination: String(mobile), // Customer's mobile number
+    destination: String("+91" + mobile), // Customer's mobile number
     userName: String(userName), // Customer's name
   };
 
@@ -899,7 +899,7 @@ exports.verifyOrder = async (req, res) => {
       });
 
       const messageData = {
-        mobile,
+        mobile: mobile,
         adminMobile: process.env.ADMIN_MOBILE_AISENSY,
         userName,
         order_id,
@@ -1098,7 +1098,7 @@ const orderCancelledMessage = async (messageData) => {
   const data = {
     apiKey: process.env.AISENSY_KEY,
     campaignName: "order_cancelled",
-    destination: String(mobile), //  mobile is a string
+    destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
     media: {
@@ -1132,7 +1132,7 @@ const refundInitiatedMessage = async (messageData) => {
   const data = {
     apiKey: process.env.AISENSY_KEY,
     campaignName: "refund_initiated",
-    destination: String(mobile), //  mobile is a string
+    destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
     media: {
