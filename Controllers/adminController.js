@@ -371,9 +371,9 @@ exports.cancelOrder = async (req, res) => {
   const { order_id } = req.body;
   try {
     const updateSQL =
-      "UPDATE customer_orders SET order_status = ? WHERE order_id = ?";
+      "UPDATE customer_orders SET order_status = ?,customer_cancellation=? WHERE order_id = ?";
     const result = await new Promise((resolve, reject) => {
-      db.query(updateSQL, ["cancelled", order_id], (err, rows) => {
+      db.query(updateSQL, ["cancelled", 0, order_id], (err, rows) => {
         if (err) {
           reject(err);
         }
