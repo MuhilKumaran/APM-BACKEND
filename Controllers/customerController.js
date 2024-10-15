@@ -1025,6 +1025,7 @@ exports.cancelOrder = async (req, res) => {
         { order_id }
       );
       if ((await response).status === 200) {
+        console.log("refund success");
         return res.status(200).json({
           status: true,
           message: "Order cancelled and refunded successfully",
@@ -1044,6 +1045,7 @@ exports.cancelOrder = async (req, res) => {
 };
 
 exports.refundOrder = async (req, res) => {
+  console.log("in refund route");
   const { order_id } = req.body;
   try {
     const refundSQL =
@@ -1067,7 +1069,7 @@ exports.refundOrder = async (req, res) => {
     const orderResult = refundResult[0]; // Corrected this line
     const razorpayPaymentId = orderResult.razorpay_payment_id;
     const refundAmount = Math.floor(orderResult.total_price) * 100;
-     console.log(refundAmount);
+    console.log(refundAmount);
     if (razorpayPaymentId) {
       const refund = await razorpay.payments.refund(razorpayPaymentId, {
         // Corrected variable name
