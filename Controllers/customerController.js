@@ -1020,6 +1020,7 @@ exports.cancelOrder = async (req, res) => {
       });
     });
     if (updateResult.affectedRows > 0) {
+      console.log("refund hit");
       const response = axios.post(
         "https://annapoorna-test-backend.onrender.com/customers/refund-order",
         { order_id }
@@ -1054,6 +1055,8 @@ exports.refundOrder = async (req, res) => {
     const refundResult = await new Promise((resolve, reject) => {
       db.query(refundSQL, [order_id], (err, result) => {
         if (err) {
+          console.log("error in db");
+          console.log(err);
           return reject(err);
         }
         resolve(result);
