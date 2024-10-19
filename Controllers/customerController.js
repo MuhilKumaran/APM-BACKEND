@@ -1178,7 +1178,7 @@ exports.getOrders = async (req, res) => {
     console.log(mobile);
 
     // Check if email is provided
-    if (!email) {
+    if (!mobile) {
       return res.status(400).json({
         status: false,
         message: "email is required to fetch orders",
