@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    font-size: 8px; /* Reduce font size */
+}
+
+.invoice {
+    background-color: #fff;
+    padding: 15px; /* Reduce padding */
+    margin: 0 auto;
+    max-width: 500px; /* Reduce max width */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.details-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.order-details {
+    width: 48%; /* Adjust width to fit side by side */
+}
+
+.order-summary table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* .order-summary table, .order-summary th, .order-summary td {
+    border: 1px solid #ddd;
+} */
+.line{
+    border-bottom: 1px solid #000;
+}
+
+.order-summary th, .order-summary td {
+    padding: 6px; /* Reduce padding */
+    text-align: left;
+}
+
+.order-summary tfoot td {
+    font-weight: bold;
+}
+.lineup{
+    border-top: 1px solid #000 ;
+}
+.order-summary tfoot tr:last-child td {
+    font-size: 1.1em; /* Adjust total font size */
+}
+

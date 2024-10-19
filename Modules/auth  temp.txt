@@ -1,0 +1,54 @@
+// const authenticateToken = (req, res, next) => {
+//     const authHeader = req.headers['authorization'];
+//     console.log(authHeader);
+//     const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
+//     console.log(token);
+
+//     if (!token) {
+//         return res.status(401).json({ message: 'No token provided' });
+//     }
+
+//     jwt.verify(token, SECRET_KEY, (err, user) => {
+//         if (err) {
+//             return res.status(403).json({ message: 'Invalid token' });
+//         }
+//         req.user = user; // Attach user data to the request object
+//         next();
+//     });
+// };
+
+Using Axios:
+
+import axios from 'axios';
+
+const fetchProtectedData = async () => {
+    try {
+        const response = await axios.get('http://localhost:3000/protected-route', {
+            withCredentials: true // Include cookies in the request
+        });
+        console.log(response.data);
+    } catch (error) {
+        console.error('Failed to fetch protected data:', error.response?.data?.message || error.message);
+    }
+};
+
+Using fetch:
+
+const fetchProtectedData = async () => {
+    try {
+        const response = await fetch('http://localhost:3000/protected-route', {
+            method: 'GET',
+            credentials: 'include' // Include cookies in the request
+        });
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Failed to fetch protected data:', error.message);
+    }
+};
+
+
+
+
+
+
