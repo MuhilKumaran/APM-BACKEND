@@ -2,6 +2,7 @@ const { default: axios } = require("axios");
 const db = require("../Modules/mysql");
 const bcrypt = require("bcrypt");
 const Razorpay = require("razorpay");
+const nodemailer = require("nodemailer");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
