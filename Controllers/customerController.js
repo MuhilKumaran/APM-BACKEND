@@ -688,8 +688,7 @@ exports.verifyOrder = async (req, res) => {
     try {
       console.log("Hash verified");
       const preOrderDate = preorderDate || null;
-      const now = new Date(Date.now());
-      const currentDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+      const currentDate = new Date();
       // Fetch the number of documents in the 'orders' collection
       const isCancel = true;
       const cancellation = isCancel ? 1 : 0;
@@ -734,61 +733,11 @@ exports.verifyOrder = async (req, res) => {
       });
 
       const order_id = resultId[0].order_id;
-      const billdate = currentDate.toISOString().split("T")[0];
-      const billtime = currentDate.toTimeString().split(" ")[0];
-      const order = {
-        orderIdrec: order_id,
-        orderDate: currentDate,
-        preOrderDate: preOrderDate,
-        paymentMethod: "Paid",
-        customerName: userName,
-        customerAddress: address,
-        customerMobile: mobile,
-        customerEmail: email,
-        orderItems: orderItems,
-        itemTotal: totalAmount,
-        finalAmount: finalTotalAmount,
-        billdate,
-        billtime,
-        delivery,
-      };
-      const html = await ejs.renderFile(
-        path.join(__dirname, "views", "bill.ejs"),
-        { order }
-      );
-
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"], // Required for Render environment
-      });
-      const page = await browser.newPage();
-
-      // Set HTML content to Puppeteer page
-      await page.setContent(html, { waitUntil: "networkidle0" });
-
-      // Generate PDF from the page content
-      const pdfBuffer = await page.pdf({
-        format: "A5",
-        printBackground: false,
-      });
-
-      // Close Puppeteer browser
-      await browser.close();
-
-      console.log("bill data:", billData);
-
-      // Configure Nodemailer for email sending
-
-      console.log("generating receipt");
-      let totalQuantity = 0;
-      orderItems.forEach((item) => {
-        totalQuantity += item.quantity;
-      });
-      // const billData = {
+      // const order = {
       //   orderIdrec: order_id,
       //   orderDate: currentDate,
       //   preOrderDate: preOrderDate,
-      //   paymentMethod: "Paid",
+      //   paymentMethod: "Online",
       //   customerName: userName,
       //   customerAddress: address,
       //   customerMobile: mobile,
@@ -797,198 +746,247 @@ exports.verifyOrder = async (req, res) => {
       //   itemTotal: totalAmount,
       //   finalAmount: finalTotalAmount,
       // };
-      // const {
-      //   orderIdrec,
-      //   orderDate,
-      //   paymentMethod,
-      //   customerName,
-      //   customerAddress,
-      //   customerMobile,
-      //   customerEmail,
-      //   itemTotal,
-      //   finalAmount,
-      // } = billData;
+      // const html = await ejs.renderFile(
+      //   path.join(__dirname, "views", "bill.ejs"),
+      //   { order }
+      // );
+
+      // Launch Puppeteer browser
+      // const browser = await puppeteer.launch({
+      //   headless: true,
+      //   args: ['--no-sandbox', '--disable-setuid-sandbox'],  // Required for Render environment
+      // });
+      // const page = await browser.newPage();
+
+      // // Set HTML content to Puppeteer page
+      // await page.setContent(html, { waitUntil: "networkidle0" });
+
+      // // Generate PDF from the page content
+      // const pdfBuffer = await page.pdf({
+      //   format: "A5",
+      //   printBackground: false,
+      // });
+
+      // // Close Puppeteer browser
+      // await browser.close();
+
+      // console.log("bill data:", billData);
+
+      // Configure Nodemailer for email sending
+
+      console.log("gereating receipt");
+      let totalQuantity = 0;
+      orderItems.forEach((item) => {
+        totalQuantity += item.quantity;
+      });
+      const billData = {
+        orderIdrec: order_id,
+        orderDate: currentDate,
+        preOrderDate: preOrderDate,
+        paymentMethod: "Online",
+        customerName: userName,
+        customerAddress: address,
+        customerMobile: mobile,
+        customerEmail: email,
+        orderItems: orderItems,
+        itemTotal: totalAmount,
+        finalAmount: finalTotalAmount,
+      };
+      const {
+        orderIdrec,
+        orderDate,
+        paymentMethod,
+        customerName,
+        customerAddress,
+        customerMobile,
+        customerEmail,
+        itemTotal,
+        finalAmount,
+      } = billData;
+
+      const billdate = orderDate.toISOString().split("T")[0];
+      const billtime = orderDate.toTimeString().split(" ")[0];
 
       console.log("bill data:", billData);
       console.log("Order Items");
       console.log(orderItems);
-      //     const receipt = ` <!DOCTYPE html>
-      // <html lang="en">
-      //   <head>
-      //     <meta charset="UTF-8" />
-      //     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      //     <title>Invoice</title>
-      //     <style>
-      //       body {
-      //         font-family: Arial, sans-serif;
-      //         margin: 0;
-      //         padding: 20px;
-      //         background-color: #f4f4f4;
-      //         font-size: 8px;
-      //       }
-      //       .invoice {
-      //         background-color: #fff;
-      //         padding: 15px;
-      //         margin: 0 auto;
-      //         max-width: 500px;
-      //         border-radius: 8px;
-      //         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      //       }
-      //       .details-container {
-      //         display: flex;
-      //         gap:40px
-      //       }
-      //       .order-details {
-      //         width: 40%;
-      //       }
-      //       .company-details {
-      //         width: 50%;
-      //       }
-      //       .order-summary table {
-      //         width: 100%;
-      //         border-collapse: collapse;
-      //       }
-      //       .line {
-      //         border-bottom: 1px solid #000;
-      //       }
-      //       .order-summary th,
-      //       .order-summary td {
-      //         padding: 6px;
-      //         text-align: left;
-      //       }
-      //       .order-summary tfoot td {
-      //         font-weight: bold;
-      //       }
-      //       .lineup {
-      //         border-top: 1px solid #000;
-      //       }
-      //       .order-summary tfoot tr:last-child td {
-      //         font-size: 1.1em;
-      //       }
-      //       .right-align {
-      //          text-align: right;
-      //       }
-      //     </style>
-      //   </head>
-      //   <body>
-      //     <div class="invoice">
-      //       <div class="details-container">
-      //         <div class="company-details">
-      //           <h3>Annapoorna Mithai</h3>
-      //           <p>
-      //             Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
-      //             Contact: annapoornamithai@gmail.com  <br/>
-      //             GSTIN - 33BCTPA8028E2ZP
-      //           </p>
-      //         </div>
-      //         <div class="order-details">
-      //           <h3>Order details</h3>
-      //           <p>Order Id : ${orderIdrec}</p>
-      //           <p>Order Date : ${billdate}</p>
-      //           <p>Order Time : ${billtime}</p>
-      //           <p>Payment Status: ${paymentMethod}</p>
-      //           ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
-      //         </div>
-      //       </div>
-      //       <hr />
-      //       <div >
-      //         <div class="customer-details">
-      //           <h3>Customer details</h3>
-      //           <p>
-      //             Name: ${customerName}<br />
-      //             Address: ${customerAddress}<br />
-      //             Mobile: ${customerMobile}<br />
-      //             Email: ${customerEmail}
-      //           </p>
-      //         </div>
-      //       </div>
-      //       <div class="order-summary">
-      //         <h3>Order summary</h3>
-      //         <hr />
-      //         <table>
-      //           <thead>
-      //             <tr class="line">
-      //               <th>Item</th>
-      //               <th>Qty</th>
-      //               <th>Price/Qty</th>
-      //               <th>GST</th>
-      //               <th>Amount</th>
-      //             </tr>
-      //           </thead>
-      //           <tbody>
-      //             ${orderItems
-      //               .map(
-      //                 (item) => `
-      //               <tr>
-      //                 <td>${item.name}</td>
-      //                 <td>${item.quantity}</td>
-      //                 <td>₹${item.price}</td>
-      //                 <td>₹${(item.price * item.quantity * item.gst) / 100}  (${
-      //                   item.gst
-      //                 }%)</td>
-      //                 <td>₹${(
-      //                   item.price * item.quantity +
-      //                   (item.price * item.quantity * item.gst) / 100
-      //                 ).toFixed(2)}</td>
-      //               </tr>
-      //             `
-      //               )
-      //               .join("")}
-      //           </tbody>
-      //           <tfoot>
-      //             <tr class="lineup">
-      //               <td>Total</td>
-      //               <td colspan="2">${totalQuantity}</td>
-      //               <td>₹${gst}</td>
-      //               <td><strong>₹${(Number(finalAmount) - Number(delivery)).toFixed(
-      //                 2
-      //               )}</strong></td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td >Sub Total</td>
-      //               <td>${(
-      //                 Number(finalAmount) -
-      //                 Number(gst) -
-      //                 Number(delivery)
-      //               ).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>CGST @2.5%</td>
-      //               <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>SGST @2.5%</td>
-      //               <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>CGST @6%</td>
-      //               <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>SGST @6%</td>
-      //               <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //             <td colspan="3"></td>
-      //               <td>Delivery</td>
-      //               <td>₹${delivery}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td><strong>Total</strong></td>
-      //               <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
-      //             </tr>
-      //           </tfoot>
-      //         </table>
-      //       </div>
-      //     </div>
-      //   </body>
-      // </html>`;
+      const receipt = ` <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Invoice</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+          background-color: #f4f4f4;
+          font-size: 8px;
+        }
+        .invoice {
+          background-color: #fff;
+          padding: 15px;
+          margin: 0 auto;
+          max-width: 500px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .details-container {
+          display: flex;
+          gap:40px
+        }
+        .order-details {
+          width: 40%;
+        }
+        .company-details {
+          width: 50%;
+        }
+        .order-summary table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .line {
+          border-bottom: 1px solid #000;
+        }
+        .order-summary th,
+        .order-summary td {
+          padding: 6px;
+          text-align: left;
+        }
+        .order-summary tfoot td {
+          font-weight: bold;
+        }
+        .lineup {
+          border-top: 1px solid #000;
+        }
+        .order-summary tfoot tr:last-child td {
+          font-size: 1.1em;
+        }
+        .right-align {
+           text-align: right;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice">
+        <div class="details-container">
+          <div class="company-details">
+            <h3>Annapoorna Mithai</h3>
+            <p>
+              Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
+              Contact: annapoornamithai@gmail.com  <br/>      
+              GSTIN - 33BCTPA8028E2ZP
+            </p>
+          </div>
+          <div class="order-details">
+            <h3>Order details</h3>
+            <p>Order Id : ${orderIdrec}</p>
+            <p>Order Date : ${orderDate}</p>
+            <p>Payment: ${paymentMethod}</p>
+            ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
+          </div>
+        </div>
+        <hr />
+        <div >
+          <div class="customer-details">
+            <h3>Customer details</h3>
+            <p>
+              Name: ${customerName}<br />
+              Address: ${customerAddress}<br />
+              Mobile: ${customerMobile}<br />
+              Email: ${customerEmail}
+            </p>
+          </div>
+        </div>
+        <div class="order-summary">
+          <h3>Order summary</h3>
+          <hr />
+          <table>
+            <thead>
+              <tr class="line">
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price/Qty</th>
+                <th>GST</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${orderItems
+                .map(
+                  (item) => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>₹${item.price}</td>
+                  <td>₹${(item.price * item.quantity * item.gst) / 100}  (${
+                    item.gst
+                  }%)</td>
+                  <td>₹${(
+                    item.price * item.quantity +
+                    (item.price * item.quantity * item.gst) / 100
+                  ).toFixed(2)}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+            <tfoot>
+              <tr class="lineup">
+                <td>Total</td>
+                <td colspan="2">${totalQuantity}</td>
+                <td>₹${gst}</td>
+                <td><strong>₹${(Number(finalAmount) - Number(delivery)).toFixed(
+                  2
+                )}</strong></td>
+              </tr>
+              <tr class="lineup">
+                <td colspan="3"></td>
+                <td >Sub Total</td>
+                <td>${(
+                  Number(finalAmount) -
+                  Number(gst) -
+                  Number(delivery)
+                ).toFixed(2)}</td>
+              </tr>
+              <tr class="lineup">
+                <td colspan="3"></td>
+                <td>CGST @2.5%</td>
+                <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
+              </tr>
+              <tr class="lineup">
+                <td colspan="3"></td>
+                <td>SGST @2.5%</td>
+                <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
+              </tr>
+              <tr class="lineup">
+                <td colspan="3"></td>
+                <td>CGST @6%</td>
+                <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
+              </tr>
+              <tr class="lineup">
+                <td colspan="3"></td>
+                <td>SGST @6%</td>
+                <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
+              </tr>
+              <tr class="lineup">
+              <td colspan="3"></td>
+                <td>Delivery</td>
+                <td>₹${delivery}</td>
+              </tr>
+              <tr class="lineup">
+                <td colspan="3"></td>
+                <td><strong>Total</strong></td>
+                <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
+              </tr> 
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </body>
+  </html>`;
+  
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -1002,13 +1000,7 @@ exports.verifyOrder = async (req, res) => {
         to: [email, process.env.GMAIL_USER],
         subject: `Invoice - Order ${order_id}`,
         text: `Dear ${userName},\n\n Please find attached the invoice for your recent purchase.\n\nThank you for shopping with us!`,
-        attachments: [
-          {
-            filename: "Invoice.pdf", // PDF file name
-            content: pdfBuffer, // File content
-            contentType: "application/pdf",
-          },
-        ],
+        html: receipt,
       };
 
       // Send email with the PDF attachment
