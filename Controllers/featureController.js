@@ -28,28 +28,30 @@ exports.checkPincode = async (req, res) => {
     if (postOffices.length > 0) {
       const state = postOffices[0].State;
       const district = postOffices[0].District;
+      console.log("hii");
       // Check if the state is Tamil Nadu, Karnataka, or Kerala
-
       if (!["Tamil Nadu", "Karnataka", "Kerala"].includes(state)) {
+        const pincodeData = {
+          pincode: pincode,
+          state: state,
+          district: district,
+        };
+
+        const pincodeRef = db.collection("pincodes").doc();
+        await pincodeRef.set(pincodeData);
+        const deliveryFee = state == "Tamil Nadu" ? 100 : 150;
         return res
           .status(400)
-          .json({ status: false, message: "Not deliverable" });
+          .json({ status: false, message: "Not deliverable",state ,deliveryFee });
       }
     } else {
       return res
         .status(400)
         .json({ status: false, message: "Invalid PinCode" });
     }
-    const deliveryFee = state == "Tamil Nadu" ? 100 : 150;
-    const pincodeData = {
-      pincode,
-      state,
-      district,
-      deliveryFee,
-    };
     return res
       .status(200)
-      .json({ status: true, message: " Delivery Available", pincodeData });
+      .json({ status: true, message: " Delivery Available" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error fetching pincode data" });
