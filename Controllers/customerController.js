@@ -133,7 +133,7 @@ exports.sendOTP = async (req, res) => {
     );
     if (response.status === 200) {
       return res.status(200).json({
-        status: truee,
+        status: true,
         message: "OTP sent successfully",
         data: response.data,
       });
@@ -145,6 +145,7 @@ exports.sendOTP = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       status: false,
       message: "Error sending OTP.",
