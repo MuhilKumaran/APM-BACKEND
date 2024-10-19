@@ -19,6 +19,14 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
 exports.signupCustomer = async (req, res) => {
   try {
     const { name, email, mobile, password } = req.body;
@@ -347,6 +355,101 @@ const orderReceivedMessage = async (messageData) => {
       "Error sending message:",
       error.response ? error.response.data : error.message
     );
+  }
+};
+
+const sendOrderReceivedEmail = async (messageData) => {
+  try {
+
+    // HTML content of the email
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f4f4f4;
+                  margin: 0;
+                  padding: 0;
+              }
+              .email-container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  border-radius: 8px;
+                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+              }
+              .email-header {
+                  text-align: center;
+                  background-color: #ff9800;
+                  padding: 10px;
+                  border-radius: 8px 8px 0 0;
+              }
+              .email-header h1 {
+                  color: #fc5757;
+                  margin: 0;
+              }
+              .email-body {
+                  padding: 20px;
+                  line-height: 1.6;
+              }
+              .email-body p {
+                  margin: 0 0 10px;
+              }
+              .email-footer {
+                  text-align: center;
+                  margin-top: 20px;
+                  font-size: 12px;
+                  color: #888888;
+              }
+              .btn {
+                  display: inline-block;
+                  background-color: #ff9800;
+                  color: #ffffff;
+                  padding: 10px 20px;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  margin-top: 10px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="email-container">
+              <div class="email-header">
+                  <h1>Annapoorna Mithai</h1>
+              </div>
+              <div class="email-body">
+                  <p>Hi <strong>${messageData.userName}</strong>,</p>
+                  <p>We're happy to let you know that we've received your order with the Order ID: <strong>${messageData.order_id}</strong>.</p>
+                  <p>You can check the details of your order by clicking the button below:</p>
+                  <p><a href="https://www.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
+                  <p>Thank you for choosing <strong>Annapoorna Mithai</strong>! We truly appreciate your trust in us and are excited to serve you.</p>
+              </div>
+              <div class="email-footer">
+                  <p>If you have any questions, feel free to reach out.</p>
+                  <p>&copy; 2024 Annapoorna Mithai</p>
+              </div>
+          </div>
+      </body>
+      </html>
+      `;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER, // Sender address
+      to: messageData.email, // Receiver's email
+      subject: "Order Status Update: We’ve Received Your Order!",
+      html: emailHtml, // HTML email body
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log("Order received email sent successfully");
+  } catch (error) {
+    console.error("Error sending order received email:", error);
   }
 };
 
@@ -986,14 +1089,14 @@ exports.verifyOrder = async (req, res) => {
       </div>
     </body>
   </html>`;
-  
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_PASS,
-        },
-      });
+
+      // const transporter = nodemailer.createTransport({
+      //   service: "gmail",
+      //   auth: {
+      //     user: process.env.GMAIL_USER,
+      //     pass: process.env.GMAIL_PASS,
+      //   },
+      // });
 
       const mailOptions = {
         from: process.env.GMAIL_USER,
@@ -1016,9 +1119,10 @@ exports.verifyOrder = async (req, res) => {
         adminMobile: process.env.ADMIN_MOBILE_AISENSY,
         userName,
         order_id,
+        email,
       };
-
       orderReceivedMessage(messageData);
+      sendOrderReceivedEmail(messageData);
       res
         .status(200)
         .json({ status: true, message: "Payment Successful and email sent" });
@@ -1036,13 +1140,13 @@ exports.sendContactUs = async (req, res) => {
     const { name, mobile, message } = req.body;
 
     // Create a transport object with Gmail configuration
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.GMAIL_USER,
+    //     pass: process.env.GMAIL_PASS,
+    //   },
+    // });
 
     // Define the HTML content for the email
     const htmlContent = `

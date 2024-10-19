@@ -8,6 +8,14 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
 exports.loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -87,6 +95,395 @@ exports.updateMenu = async (req, res) => {
       .json({ status: false, error: "Error in updating menu item" });
   }
 };
+const sendOrderProcessingEmail = async (messageData) => {
+  try {
+    // The HTML content of your email
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .email-header {
+              text-align: center;
+              padding: 10px;
+              border-radius: 8px 8px 0 0;
+            }
+            .email-header h1 {
+              color: #fc5757;
+              margin: 0;
+            }
+            .email-body {
+              padding: 20px;
+              line-height: 1.6;
+            }
+            .email-body p {
+              margin: 0 0 10px;
+            }
+            .email-footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              color: #888888;
+            }
+            .btn {
+              display: inline-block;
+              background-color: #007bff;
+              color: #ffffff;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 5px;
+              margin-top: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-header">
+              <h1>Annapoorna Mithai</h1>
+            </div>
+            <div class="email-body">
+              <p>Hi <strong>${messageData.userName}</strong>,</p>
+              <p>
+                Your order with Order ID: <strong>${messageData.order_id}</strong> is now being
+                processed.
+              </p>
+              <p>
+                You can check the details of your order by clicking the button below:
+              </p>
+              <p><a href="https://www.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
+              <p>
+                Thank you for your patience and for choosing
+                <strong>Annapoorna Mithai</strong>!
+              </p>
+            </div>
+            <div class="email-footer">
+              <p>If you have any questions, feel free to reach out.</p>
+              <p>&copy; 2024 Annapoorna Mithai</p>
+            </div>
+          </div>
+        </body>
+      </html>
+      `;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER, // Sender's email address
+      to: messageData.email, // Receiver's email address
+      subject: "Order Update: Your Order is Being Processed!",
+      html: emailHtml, // HTML body of the email
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log("Order processing email sent successfully");
+  } catch (error) {
+    console.error("Error sending order processing email:", error);
+  }
+};
+const sendOrderShippedEmail = async (messageData) => {
+  try {
+    // The HTML content of your email
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .email-header {
+              text-align: center;
+              padding: 10px;
+              border-radius: 8px 8px 0 0;
+            }
+            .email-header h1 {
+              color: #fc5757;
+              margin: 0;
+            }
+            .email-body {
+              padding: 20px;
+              line-height: 1.6;
+            }
+            .email-body p {
+              margin: 0 0 10px;
+            }
+            .email-footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              color: #888888;
+            }
+            .btn {
+              display: inline-block;
+              background-color: #007bff;
+              color: #ffffff;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 5px;
+              margin-top: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-header">
+              <h1>Annapoorna Mithai</h1>
+            </div>
+            <div class="email-body">
+              <p>Hi <strong>${messageData.userName}</strong>,</p>
+              <p>Good News! Your order with Order ID: <strong>${messageData.order_id}</strong> has been shipped and is on its way!</p>
+              <p>Thank you for choosing <strong>Annapoorna Mithai</strong>!</p>
+            </div>
+            <div class="email-footer">
+              <p>If you have any questions, feel free to reach out.</p>
+              <p>&copy; 2024 Annapoorna Mithai</p>
+            </div>
+          </div>
+        </body>
+      </html>
+      `;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER, // Sender's email address
+      to: messageData.email, // Receiver's email address
+      subject: "Your Order is On the Way!",
+      html: emailHtml, // HTML body of the email
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log("Order shipped email sent successfully");
+  } catch (error) {
+    console.error("Error sending order shipped email:", error);
+  }
+};
+
+const sendOrderDeliveredEmail = async (messageData) => {
+  try {
+    // The HTML content of your email
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .email-header {
+              text-align: center;
+              padding: 10px;
+              border-radius: 8px 8px 0 0;
+            }
+            .email-header h1 {
+              color: #fc5757;
+              margin: 0;
+            }
+            .email-body {
+              padding: 20px;
+              line-height: 1.6;
+            }
+            .email-body p {
+              margin: 0 0 10px;
+            }
+            .email-footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              color: #888888;
+            }
+            .btn {
+              display: inline-block;
+              background-color: #007bff;
+              color: #ffffff;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 5px;
+              margin-top: 10px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-header">
+              <h1>Annapoorna Mithai</h1>
+            </div>
+            <div class="email-body">
+              <p>Hi <strong>${messageData.userName}</strong>,</p>
+              <p>
+                We’re pleased to inform you that your order with Order ID:
+                <strong>${messageData.order_id}</strong> has been delivered successfully!
+              </p>
+              <p>
+                We’d love it if you could rate us on Google by clicking the button below:
+              </p>
+              <p>
+                <a href="https://g.page/r/CTnQnXTmaaGVEBM/review" class="btn">Rate Us on Google</a>
+              </p>
+              <p>
+                Thank you for choosing <strong>Annapoorna Mithai</strong>!
+              </p>
+            </div>
+            <div class="email-footer">
+              <p>If you have any questions, feel free to reach out.</p>
+              <p>&copy; 2024 Annapoorna Mithai</p>
+            </div>
+          </div>
+        </body>
+      </html>
+      `;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER, // Sender's email address
+      to: messageData.email, // Receiver's email address
+      subject: "Your Order Has Been Delivered Successfully!",
+      html: emailHtml, // HTML body of the email
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log("Order delivered email sent successfully");
+  } catch (error) {
+    console.error("Error sending order delivered email:", error);
+  }
+};
+
+const sendOrderRejectedEmail = async (messageData) => {
+  try {
+    // The HTML content of your email
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .email-header {
+              text-align: center;
+              padding: 10px;
+              border-radius: 8px 8px 0 0;
+            }
+            .email-header h1 {
+              color: #fc5757;
+              margin: 0;
+            }
+            .email-body {
+              padding: 20px;
+              line-height: 1.6;
+            }
+            .email-body p {
+              margin: 0 0 10px;
+            }
+            .email-footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              color: #888888;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-header">
+              <h1>Annapoorna Mithai</h1>
+            </div>
+            <div class="email-body">
+              <p>Hi <strong>${messageData.userName}</strong>,</p>
+              <p>
+                We regret to inform you that your order with Order ID:
+                <strong>${messageData.order_id}</strong> has been rejected.
+              </p>
+              <p>Your refund will be initiated soon.</p>
+              <p>
+                If you have any questions or need assistance, please feel free to
+                reach out at <a href="mailto:support@annapoornamithai.com">support@annapoornamithai.com</a>.
+              </p>
+              <p>
+                Thank you for your understanding and for choosing
+                <strong>Annapoorna Mithai</strong>.
+              </p>
+            </div>
+            <div class="email-footer">
+              <p>&copy; 2024 Annapoorna Mithai</p>
+            </div>
+          </div>
+        </body>
+      </html>
+      `;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER, // Sender's email address
+      to: messageData.email, // Receiver's email address
+      subject: "Your Order Has Been Rejected",
+      html: emailHtml, // HTML body of the email
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log("Order rejected email sent successfully");
+  } catch (error) {
+    console.error("Error sending order rejected email:", error);
+  }
+};
+
 const orderProcessedMessage = async (messageData) => {
   console.log(messageData);
   const { mobile, userName, order_id } = messageData;
@@ -244,7 +641,7 @@ exports.manageOrder = async (req, res) => {
     const cancellation = 0;
 
     const now = new Date(Date.now());
-    const currentDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000); 
+    const currentDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
 
     // Extract the day, month, and year
 
@@ -279,13 +676,17 @@ exports.manageOrder = async (req, res) => {
       order_id,
       mobile: orderResult.mobile,
       userName: orderResult.name,
+      email: orderResult.email,
     };
     if (delivery_status === "processing") {
       orderProcessedMessage(messageData);
+      sendOrderProcessingEmail(messageData);
     } else if (delivery_status === "shipped") {
       orderShippedMessage(messageData);
+      sendOrderShippedEmail(messageData);
     } else if (delivery_status === "delivered") {
       orderDeliveredMessage(messageData);
+      sendOrderDeliveredEmail(messageData);
     } else {
       orderCancelledMessage(messageData);
     }
@@ -429,7 +830,7 @@ exports.refundOrder = async (req, res) => {
   const { order_id } = req.body;
   try {
     const refundSQL =
-      "SELECT razorpay_payment_id, total_price , name, mobile FROM customer_orders WHERE order_id = ?";
+      "SELECT razorpay_payment_id, total_price , name, mobile, email FROM customer_orders WHERE order_id = ?";
 
     // Query to get the payment ID and total price
     const refundResult = await new Promise((resolve, reject) => {
@@ -462,9 +863,12 @@ exports.refundOrder = async (req, res) => {
         order_id,
         mobile: orderResult.mobile,
         userName: orderResult.name,
+        email: orderResult.email,
       };
       orderRejectedMessage(messageData);
       refundInitiatedMessage(messageData);
+      sendOrderRejectedEmail(messageData);
+
       return res.status(200).json({
         message: " Refunded successfully",
         refund,
