@@ -857,6 +857,9 @@ exports.verifyOrder = async (req, res) => {
         billdate,
         billtime,
         totalQuantity,
+        sweetGST,
+        savoriesGST,
+        delivery
       };
       const html = await ejs.renderFile(
         path.join(__dirname, "views", "bill.ejs"),
