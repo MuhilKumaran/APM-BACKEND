@@ -42,7 +42,7 @@ exports.checkPincode = async (req, res) => {
         const deliveryFee = state == "Tamil Nadu" ? 100 : 150;
         return res
           .status(400)
-          .json({ status: false, message: "Not deliverable", deliveryFee });
+          .json({ status: false, message: "Not deliverable",state ,deliveryFee });
       }
     } else {
       return res
