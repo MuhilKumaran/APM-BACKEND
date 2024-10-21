@@ -641,8 +641,8 @@ exports.manageOrder = async (req, res) => {
     const date_update = dateField[delivery_status];
     const cancellation = 0;
 
-    const now = new Date(Date.now());
-    const currentDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    const currentDate = new Date();
+    // const currentDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
 
     // Extract the day, month, and year
 
@@ -864,7 +864,7 @@ exports.refundOrder = async (req, res) => {
         order_id,
         mobile: orderResult.mobile,
         userName: orderResult.name,
-        email: orderResult.email,
+        email: orderResult.email,   
       };
       orderRejectedMessage(messageData);
       refundInitiatedMessage(messageData);

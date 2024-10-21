@@ -5,4 +5,6 @@ const featureController = require("../Controllers/featureController");
 router.route("/comparePrice").post(featureController.comparePrice);
 router.route("/getTotalprice").post(featureController.getPrice);
 router.route("/checkPincode").post(featureController.checkPincode);
+router.route("/view-report").post();
+router.route("/download-report").post();
 module.exports = router;
