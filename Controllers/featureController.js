@@ -185,6 +185,7 @@ exports.downloadReport = async (req, res) => {
       res.end();
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       status: false,
       error: "Error in Getting Report",
