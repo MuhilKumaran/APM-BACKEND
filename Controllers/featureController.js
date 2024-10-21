@@ -31,16 +31,14 @@ exports.checkPincode = async (req, res) => {
       const district = postOffices[0].District;
       console.log("hii");
       // Check if the state is Tamil Nadu, Karnataka, or Kerala
-      if (!["Tamil Nadu", "Karnataka", "Kerala"].includes(state)) {
+      if (
+        !["Tamil Nadu", "Karnataka", "Kerala", "Pondicherry"].includes(state)
+      ) {
         const pincodeData = {
           pincode: pincode,
           state: state,
           district: district,
         };
-
-        const pincodeRef = db.collection("pincodes").doc();
-        await pincodeRef.set(pincodeData);
-        const deliveryFee = state == "Tamil Nadu" ? 100 : 150;
         return res.status(400).json({
           status: false,
           message: "Not deliverable",
@@ -81,17 +79,23 @@ exports.getPrice = async (req, res) => {
   });
 };
 
-exports.viewOrder = async (req, res) => {
-  const { inputdate } = req.body;
+exports.viewReport = async (req, res) => {
+  const { inputdate } = req.body; // Get single date input from user
+  console.log(inputdate);
+  // Validate input
   try {
-    const sql = `SELECT order_id, received_date, processing_date, shipped_date, delivered_date , address, name , order_status
-    FROM customer_orders
-    WHERE DATE(received_date) = ?
-     OR DATE(processing_date) = ?
-     OR DATE(shipped_date) = ?
-     OR DATE(delivered_date) = ? `;
-    console.log(sql);
-    const selectResult = await new Promise((resolve, reject) => {
+    if (!inputdate) {
+      return res.status(400).send("Please provide a valid date.");
+    }
+
+    const sql = `
+      SELECT order_id, received_date, processing_date, shipped_date, delivered_date , address, name , order_status
+      FROM customer_orders
+      WHERE DATE(received_date) = ?
+       OR DATE(processing_date) = ?
+       OR DATE(shipped_date) = ?
+       OR DATE(delivered_date) = ? `;
+    const result = await new Promise((resolve, reject) => {
       db.query(
         sql,
         [inputdate, inputdate, inputdate, inputdate],
@@ -103,26 +107,31 @@ exports.viewOrder = async (req, res) => {
         }
       );
     });
-    return res.status(200).json({ status: true, result: selectResult });
+    res.status(200).json({ status: true, result: result });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       status: false,
-      error: "Error in updating order status",
+      error: "Error in Getting Report",
     });
   }
 };
 
 exports.downloadReport = async (req, res) => {
-  const { inputdate } = req.body;
+  const { inputdate } = req.body; // Get single date input from user
+  console.log(inputdate);
+  // Validate input
   try {
-    const sql = `SELECT order_id, received_date, processing_date, shipped_date, delivered_date , address, name , order_status
-    FROM customer_orders
-    WHERE DATE(received_date) = ?
-     OR DATE(processing_date) = ?
-     OR DATE(shipped_date) = ?
-     OR DATE(delivered_date) = ? `;
-    console.log(sql);
+    if (!inputdate) {
+      return res.status(400).send("Please provide a valid date.");
+    }
+
+    const sql = `
+      SELECT order_id, received_date, processing_date, shipped_date, delivered_date , address, name , order_status
+      FROM customer_orders
+      WHERE DATE(received_date) = ?
+       OR DATE(processing_date) = ?
+       OR DATE(shipped_date) = ?
+       OR DATE(delivered_date) = ? `;
     const results = await new Promise((resolve, reject) => {
       db.query(
         sql,
@@ -150,7 +159,6 @@ exports.downloadReport = async (req, res) => {
       { header: "Order Status", key: "order_status", width: 15 },
     ];
 
-    // Add rows to the worksheet
     results.forEach((order) => {
       worksheet.addRow({
         order_id: order.order_id,
@@ -164,7 +172,6 @@ exports.downloadReport = async (req, res) => {
       });
     });
 
-    // Set headers for file download
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -174,15 +181,13 @@ exports.downloadReport = async (req, res) => {
       'attachment; filename="orders-report.xlsx"'
     );
 
-    // Write the Excel file to the response
     workbook.xlsx.write(res).then(() => {
       res.end();
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       status: false,
-      error: "Error in updating order status",
+      error: "Error in Getting Report",
     });
   }
 };

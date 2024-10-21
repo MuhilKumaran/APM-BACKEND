@@ -681,13 +681,13 @@ exports.manageOrder = async (req, res) => {
     };
     if (delivery_status === "processing") {
       orderProcessedMessage(messageData);
-      sendOrderProcessingEmail(messageData);
+      // sendOrderProcessingEmail(messageData);
     } else if (delivery_status === "shipped") {
       orderShippedMessage(messageData);
-      sendOrderShippedEmail(messageData);
+      //  sendOrderShippedEmail(messageData);
     } else if (delivery_status === "delivered") {
       orderDeliveredMessage(messageData);
-      sendOrderDeliveredEmail(messageData);
+      // sendOrderDeliveredEmail(messageData);
     } else {
       orderCancelledMessage(messageData);
     }
@@ -831,7 +831,7 @@ exports.refundOrder = async (req, res) => {
   const { order_id } = req.body;
   try {
     const refundSQL =
-      "SELECT razorpay_payment_id, total_price , name, mobile, email FROM customer_orders WHERE order_id = ?";
+      "SELECT razorpay_payment_id, total_price , name, mobile FROM customer_orders WHERE order_id = ?";
 
     // Query to get the payment ID and total price
     const refundResult = await new Promise((resolve, reject) => {
@@ -864,11 +864,11 @@ exports.refundOrder = async (req, res) => {
         order_id,
         mobile: orderResult.mobile,
         userName: orderResult.name,
-        email: orderResult.email,   
+        email: orderResult.email,
       };
       orderRejectedMessage(messageData);
       refundInitiatedMessage(messageData);
-      sendOrderRejectedEmail(messageData);
+      //  sendOrderRejectedEmail(messageData);
 
       return res.status(200).json({
         message: " Refunded successfully",

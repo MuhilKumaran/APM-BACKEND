@@ -860,7 +860,7 @@ exports.verifyOrder = async (req, res) => {
         sweetGST,
         savoriesGST,
         delivery,
-        gst
+	gst
       };
       const html = await ejs.renderFile(
         path.join(__dirname, "views", "bill.ejs"),
@@ -1399,7 +1399,7 @@ exports.cancelOrder = async (req, res) => {
     console.log("In cancel order");
     console.log(req.body);
     const cancelSQL =
-      "UPDATE customer_orders SET order_status = ?,customer_cancellation WHERE order_id = ?";
+      "UPDATE customer_orders SET order_status = ?,customer_cancellation = ? WHERE order_id = ?";
     const updateResult = await new Promise((resolve, reject) => {
       db.query(cancelSQL, ["cancelled", 0, order_id], (err, result) => {
         if (err) {

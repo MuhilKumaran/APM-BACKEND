@@ -197,7 +197,7 @@
         font-size: 1.1em;
       }
       .right-align {
-         text-align: right;
+        text-align: right;
       }
     </style>
   </head>
@@ -205,10 +205,10 @@
     <div class="invoice">
       <div class="details-container">
         <div class="company-details">
-          <h3>Annapoorna Mithai</h3>
+          <h3>AnnapoornaMithai Sweets & Bakery</h3>
           <p>
-            Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
-            Contact: annapoornamithai@gmail.com <br />      
+            12/2, Ramnagar, Bypass road, Madurai <br />
+            Contact: annapoornamithai@gmail.com <br />
             GSTIN - 33BCTPA8028E2ZP
           </p>
         </div>
@@ -219,7 +219,7 @@
           <p>Order Time : <%= order.billtime %></p>
           <p>Payment Status: <%= order.paymentMethod %></p>
           <% if (order.preOrderDate) { %>
-            <p>Pre-Order Date: <%= order.preOrderDate %></p>
+          <p>Pre-Order Date: <%= order.preOrderDate %></p>
           <% } %>
         </div>
       </div>
@@ -250,13 +250,19 @@
           </thead>
           <tbody>
             <% order.orderItems.forEach(function(item) { %>
-              <tr>
-                <td><%= item.name %></td>
-                <td><%= item.quantity %></td>
-                <td>₹<%= item.price %></td>
-                <td>₹<%= (item.price * item.quantity * item.gst) / 100 %> (<%= item.gst %>%)</td>
-                <td>₹<%= (item.price * item.quantity + (item.price * item.quantity * item.gst) / 100).toFixed(2) %></td>
-              </tr>
+            <tr>
+              <td><%= item.name %> (<%=item.weight %>)</td>
+              <td><%= item.quantity %></td>
+              <td>₹<%= item.price %></td>
+              <td>
+                ₹<%= (item.price * item.quantity * item.gst) / 100 %> (<%=
+                item.gst %>%)
+              </td>
+              <td>
+                ₹<%= (item.price * item.quantity + (item.price * item.quantity *
+                item.gst) / 100).toFixed(2) %>
+              </td>
+            </tr>
             <% }) %>
           </tbody>
           <tfoot>
@@ -264,12 +270,20 @@
               <td>Total</td>
               <td colspan="2"><%= order.totalQuantity %></td>
               <td>₹<%= order.gst %></td>
-              <td><strong>₹<%= (Number(order.finalAmount) - Number(order.delivery)).toFixed(2) %></strong></td>
+              <td>
+                <strong
+                  >₹<%= (Number(order.finalAmount) -
+                  Number(order.delivery)).toFixed(2) %></strong
+                >
+              </td>
             </tr>
             <tr class="lineup">
               <td colspan="3"></td>
               <td>Sub Total</td>
-              <td>₹<%= (Number(order.finalAmount) - Number(order.gst) - Number(order.delivery)).toFixed(2) %></td>
+              <td>
+                ₹<%= (Number(order.finalAmount) - Number(order.gst) -
+                Number(order.delivery)).toFixed(2) %>
+              </td>
             </tr>
             <tr class="lineup">
               <td colspan="3"></td>
@@ -299,8 +313,10 @@
             <tr class="lineup">
               <td colspan="3"></td>
               <td><strong>Total</strong></td>
-              <td><strong>₹<%= Number(order.finalAmount).toFixed(2) %></strong></td>
-            </tr> 
+              <td>
+                <strong>₹<%= Number(order.finalAmount).toFixed(2) %></strong>
+              </td>
+            </tr>
           </tfoot>
         </table>
       </div>
