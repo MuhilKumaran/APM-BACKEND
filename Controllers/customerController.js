@@ -860,10 +860,15 @@ exports.verifyOrder = async (req, res) => {
         sweetGST,
         savoriesGST,
         delivery,
-	gst
+        gst,
       };
-      const html = await ejs.renderFile(
+      const firstPagehtml = await ejs.renderFile(
         path.join(__dirname, "views", "bill.ejs"),
+        { order }
+      );
+
+      const secondPageHtml = await ejs.renderFile(
+        path.join(__dirname, "views", "second-page.ejs"),
         { order }
       );
 
@@ -871,13 +876,23 @@ exports.verifyOrder = async (req, res) => {
         executablePath: process.env.CHROME_BIN, // specify the path to your local Chromium if in development
         headless: true,
         timeout: 60000,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu'], // additional arguments to help in some environments
-    });
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--headless",
+          "--disable-gpu",
+        ], // additional arguments to help in some environments
+      });
 
       const page = await browser.newPage();
 
+      const combinedHtml = `
+        ${firstPagehtml}
+        <div style="page-break-after: always;"></div>
+        ${secondPageHtml}
+        `;
       // Set HTML content to Puppeteer page
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      await page.setContent(combinedHtml, { waitUntil: "networkidle0" });
 
       // Generate PDF from the page content
       const pdfBuffer = await page.pdf({
