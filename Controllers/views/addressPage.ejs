@@ -25,11 +25,11 @@
       <div class="to-address">
         <p><strong>To</strong></p>
         <div class="inner-address">
-          <p>Mr. <%= order.customerName %></p>
-          <p><%= order.customerAddress %>,</p>
+          <p>Mr. <%= secondData.customerName %></p>
+          <p><%= secondData.customerAddress %>,</p>
           <!-- <p><%= customerAddress.line2 %>,</p>
           <p><%= customerAddress.city %> - <%= customerAddress.pincode %>.</p> -->
-          <p>Phone No: <%= order.customerMobile %></p>
+          <p>Phone No: <%= secondData.customerMobile %></p>
         </div>
       </div>
       <div class="from-address">
@@ -44,7 +44,7 @@
       </div>
       <br />
       <br />
-      <h3><strong>Order Id:</strong> <%= order.orderIdrec %></h3>
+      <h3><strong>Order Id:</strong> <%= secondData.orderIdrec %></h3>
     </div>
   </body>
 </html>
