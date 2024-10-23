@@ -866,11 +866,18 @@ exports.verifyOrder = async (req, res) => {
         path.join(__dirname, "views", "bill.ejs"),
         { order }
       );
+
+      const secondData = {
+        customerAddress: address,
+        orderIdrec: order_id,
+        customerName: userName,
+        customerMobile: mobile,
+      };
       console.log("secons page");
-      console.log(order);
+      console.log(secondData);
       const secondPageHtml = await ejs.renderFile(
         path.join(__dirname, "views", "addressPage.ejs"),
-        { order }
+        { secondData }
       );
 
       const browser = await puppeteer.launch({
