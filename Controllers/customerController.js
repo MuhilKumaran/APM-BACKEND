@@ -868,7 +868,7 @@ exports.verifyOrder = async (req, res) => {
       );
 
       const secondPageHtml = await ejs.renderFile(
-        path.join(__dirname, "views", "second-page.ejs"),
+        path.join(__dirname, "views", "addressPage.ejs"),
         { order }
       );
 
