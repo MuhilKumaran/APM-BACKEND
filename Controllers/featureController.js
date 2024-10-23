@@ -118,6 +118,8 @@ exports.viewReport = async (req, res) => {
 };
 
 exports.downloadReport = async (req, res) => {
+  console.log("in download-report");
+  console.log(req.body);
   const { inputdate } = req.body; // Get single date input from user
   console.log(inputdate);
   // Validate input
@@ -186,6 +188,7 @@ exports.downloadReport = async (req, res) => {
       res.end();
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       status: false,
       error: "Error in Getting Report",
