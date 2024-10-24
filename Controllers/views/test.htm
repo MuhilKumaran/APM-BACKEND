@@ -9,6 +9,7 @@
         font-family: Arial, sans-serif;
       }
       .address-section {
+        margin-top: 80px;
         margin-left: 80px;
         margin-bottom: 20px;
       }
@@ -21,30 +22,30 @@
     </style>
   </head>
   <body>
-    <div class="address-section">
-      <div class="to-address">
-        <p><strong>To</strong></p>
-        <div class="inner-address">
-          <p>Mr. <%= customerName %></p>
-          <p><%= customerAddress.line1 %>,</p>
-          <p><%= customerAddress.line2 %>,</p>
-          <p><%= customerAddress.city %> - <%= customerAddress.pincode %>.</p>
-          <p>Phone No: <%= customerPhone %></p>
+    <div class="main-div">
+      <div class="address-section">
+        <div class="to-address">
+          <h1><strong>To</strong></h1>
+          <div class="inner-address">
+            <h2>Mr. <%= secondData.customerName %></h2>
+            <h2><%= secondData.customerAddress %>,</h2>
+            <h2>Phone No: <%= secondData.customerMobile %></h2>
+          </div>
         </div>
-      </div>
-      <div class="from-address">
-        <p><strong>From</strong></p>
-        <div class="inner-address">
-          <p>ANNAPOORNA MITHAI SWEETS & BAKERY</p>
-          <p>12/2, RAM NAGAR, BYPASS ROAD,</p>
-          <p>NEAR APARNA TOWER,</p>
-          <p>MADURAI - 625010.</p>
-          <p>Phone No: 9600200484.</p>
+        <div class="from-address">
+          <h1><strong>From</strong></h1>
+          <div class="inner-address">
+            <h2>ANNAPOORNA MITHAI SWEETS & BAKERY</h2>
+            <h2>12/2, RAM NAGAR, BYPASS ROAD,</h2>
+            <h2>NEAR APARNA TOWER,</h2>
+            <h2>MADURAI - 625010.</h2>
+            <h2>Phone No: 9600200484.</h2>
+          </div>
         </div>
+        <br />
+        <br />
+        <h2><strong>Order Id:</strong> <%= secondData.orderIdrec %></h2>
       </div>
-      <br />
-      <br />
-      <h3><strong>Order Id:</strong> <%= orderId %></h3>
     </div>
   </body>
 </html>
