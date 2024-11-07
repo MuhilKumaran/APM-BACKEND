@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .address-section {
+        margin-top: 80px;
+        margin-left: 80px;
+        margin-bottom: 20px;
+      }
+      .address-section .to-address {
+        margin-bottom: 40px;
+      }
+      .inner-address {
+        margin-left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-div">
+      <div class="address-section">
+        <div class="to-address">
+          <h1><strong>To</strong></h1>
+          <div class="inner-address">
+            <h2>Mr. <%= secondData.customerName %></h2>
+            <h2><%= secondData.customerAddress %>,</h2>
+            <h2>Phone No: <%= secondData.customerMobile %></h2>
+          </div>
+        </div>
+        <div class="from-address">
+          <h1><strong>From</strong></h1>
+          <div class="inner-address">
+            <h2>ANNAPOORNA MITHAI SWEETS & BAKERY</h2>
+            <h2>12/2, RAM NAGAR, BYPASS ROAD,</h2>
+            <h2>NEAR APARNA TOWER,</h2>
+            <h2>MADURAI - 625010.</h2>
+            <h2>Phone No: 9600200484.</h2>
+          </div>
+        </div>
+        <br />
+        <br />
+        <h2><strong>Order Id:</strong> <%= secondData.orderIdrec %></h2>
+      </div>
+    </div>
+  </body>
+</html>

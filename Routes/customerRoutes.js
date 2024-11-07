@@ -7,7 +7,8 @@ router.route("/signup").post(customerController.signupCustomer);
 
 router.route("/send-otp").post(customerController.sendOTP);
 
-router.route("/verify-otp").post(customerController.verifyOtp);
+router
+  .route("/verify-otp").post(customerController.verifyOtp);
 
 router
   .route("/logout")

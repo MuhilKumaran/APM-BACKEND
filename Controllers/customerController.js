@@ -19,6 +19,14 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
 exports.signupCustomer = async (req, res) => {
   try {
     const { name, email, mobile, password } = req.body;
@@ -50,161 +58,219 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// exports.sendOTP = async (req, res) => {
+//   const { email } = req.body;
+
+//   try {
+//     const otp = generateOTP();
+//     console.log(otp);
+
+//     const sql = `INSERT INTO login_otp (email, otp)
+//                  VALUES (?, ?)
+//                  ON DUPLICATE KEY UPDATE
+//                  otp = VALUES(otp)`;
+//     const result = await new Promise((resolve, reject) => {
+//       db.query(sql, [email, otp], (err, result) => {
+//         if (err) {
+//           return reject(err);
+//         }
+//         resolve(result);
+//       });
+//     });
+
+//     // Configure the email transport
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: process.env.GMAIL_USER,
+//         pass: process.env.GMAIL_PASS,
+//       },
+//     });
+
+//     // Read the HTML template
+//     const templatePath = path.join(__dirname, "otpTemplate.html");
+//     let htmlTemplate = fs.readFileSync(templatePath, "utf-8");
+
+//     htmlTemplate = htmlTemplate.replace("{{OTP}}", otp);
+
+//     // Send email
+//     const mailOptions = {
+//       from: process.env.GMAIL_USER,
+//       to: email,
+//       subject: "Your OTP for Login to Annapoorna Mithai",
+//       html: htmlTemplate,
+//     };
+
+//     await transporter.sendMail(mailOptions);
+
+//     console.log("OTP sent successfully via email");
+
+//     res.json({
+//       status: true,
+//       message: "OTP sent successfully",
+//       otp: otp, // Optionally return the OTP for testing purposes, but remove this in production
+//     });
+//   } catch (error) {
+//     console.error("Error sending OTP:", error.message);
+//     res.status(500).json({
+//       status: false,
+//       message: "Error sending OTP.",
+//     });
+//   }
+// };
+
 exports.sendOTP = async (req, res) => {
-  const { email } = req.body;
-
+  const { mobile } = req.body;
   try {
-    // Check if the email exists in the customers table
-    // const checkEmailSql = "SELECT * FROM customers WHERE email = ?";
-    // const emailExists = await new Promise((resolve, reject) => {
-    //   db.query(checkEmailSql, [email], (err, result) => {
-    //     if (err) {
-    //       return reject(err);
-    //     }
-    //     resolve(result.length > 0); // Returns true if email exists
-    //   });
-    // });
-
-    // if (!emailExists) {
-    //   return res.status(404).json({
-    //     status: false,
-    //     message: "Signup to Continue",
-    //   });
-    // }
-
-    const otp = generateOTP();
-    console.log(otp);
-
-    const sql = `INSERT INTO login_otp (email, otp) 
-                 VALUES (?, ?)  
-                 ON DUPLICATE KEY UPDATE 
-                 otp = VALUES(otp)`;
-    const result = await new Promise((resolve, reject) => {
-      db.query(sql, [email, otp], (err, result) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(result);
-      });
-    });
-
-    // Configure the email transport
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
-
-    // Read the HTML template
-    const templatePath = path.join(__dirname, "otpTemplate.html");
-    let htmlTemplate = fs.readFileSync(templatePath, "utf-8");
-
-    htmlTemplate = htmlTemplate.replace("{{OTP}}", otp);
-
-    // Send email
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: email,
-      subject: "Your OTP for Login to Annapoorna Mithai",
-      html: htmlTemplate,
+    const data = {
+      template_id: "67135ae3d6fc05172470aa12", // Confirm this is the correct template ID
+      mobile: `91${mobile}`, // Ensure mobile includes country code (India: 91)
+      authkey: "432528AQaOjCQFNn67125dc2P1", // Your Msg91 API key
+      sender: "APMITX", // Approved DLT sender ID (6 characters)                    // Use provided OTP or let Msg91 auto-generate
+      otp_length: "6", // Optional: Default OTP length is 6
     };
-
-    await transporter.sendMail(mailOptions);
-
-    console.log("OTP sent successfully via email");
-
-    res.json({
-      status: true,
-      message: "OTP sent successfully",
-      otp: otp, // Optionally return the OTP for testing purposes, but remove this in production
-    });
+    const response = await axios.post(
+      "https://api.msg91.com/api/v5/otp",
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          authkey: "432528AQaOjCQFNn67125dc2P1",
+        },
+      }
+    );
+    if (response.status === 200) {
+      return res.status(200).json({
+        status: true,
+        message: "OTP sent successfully",
+        data: response.data,
+      });
+    } else {
+      return res.status(response.status).json({
+        status: false,
+        message: "Failed to send OTP",
+        error: response.data,
+      });
+    }
   } catch (error) {
-    console.error("Error sending OTP:", error.message);
-    res.status(500).json({
+    console.log(error);
+    return res.status(500).json({
       status: false,
       message: "Error sending OTP.",
     });
   }
 };
+// exports.verifyOtp = async (req, res) => {
+//   console.log("Incoming request:", req.body);
+
+//   const { email, otp } = req.body;
+
+//   try {
+//     const sql = "SELECT * FROM login_otp WHERE email = ?";
+
+//     const result = await new Promise((resolve, reject) => {
+//       db.query(sql, [email], (err, result) => {
+//         if (err) {
+//           return reject(err);
+//         }
+//         resolve(result);
+//       });
+//     });
+
+//     if (result.length === 0) {
+//       return res.status(404).json({ status: false, message: "OTP not found" });
+//     }
+
+//     const userRecord = result[0];
+//     // Validate the OTP
+//     if (userRecord.otp !== otp) {
+//       return res.status(400).json({ status: false, message: "Invalid OTP" });
+//     }
+
+//     // OTP is valid, generate JWT token
+// const token = jwt.sign(
+//   {
+//     email: userRecord.email,
+//   },
+//   SECRET_KEY
+// { expiresIn: "1h" } // Optionally set token expiration
+// );
+//     const deleteSQL = "DELETE FROM login_otp WHERE email = ?";
+//     const deleteResult = await new Promise((resolve, reject) => {
+//       db.query(deleteSQL, [email], (err, result) => {
+//         if (err) {
+//           return reject(err);
+//         }
+//         resolve(result);
+//       });
+//     });
+
+//     console.log("OTP verification successful:", userRecord);
+
+//     // Send success response with JWT token
+//     return res.status(200).json({
+//       status: true,
+//       message: "Login Successful",
+//       token,
+//       user: {
+//         email: userRecord.email,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error verifying OTP:", error.message);
+
+//     // Send error response to client
+//     return res.status(500).json({
+//       status: false,
+//       message: "OTP verification failed",
+//       error: error.message,
+//     });
+//   }
+// };
 
 exports.verifyOtp = async (req, res) => {
-  console.log("Incoming request:", req.body);
-
-  const { email, otp } = req.body;
-
+  const { otp, mobile } = req.body;
   try {
-    // Fetch the user's document from Firestore
-    // const sql = `SELECT
-    //       customers.name,
-    //       customers.mobile,
-    //       customers.email,
-    //       customers.password,
-    //       login_otp.otp
-    //   FROM
-    //       customers
-    //   JOIN
-    //       login_otp
-    //   ON
-    //       customers.email = login_otp.email
-    //   WHERE
-    //       login_otp.email = ?`;
-
-    const sql = "SELECT * FROM login_otp WHERE email = ?";
-
-    const result = await new Promise((resolve, reject) => {
-      db.query(sql, [email], (err, result) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(result);
-      });
-    });
-
-    if (result.length === 0) {
-      return res.status(404).json({ status: false, message: "OTP not found" });
-    }
-
-    const userRecord = result[0];
-    // Validate the OTP
-    if (userRecord.otp !== otp) {
-      return res.status(400).json({ status: false, message: "Invalid OTP" });
-    }
-
-    // OTP is valid, generate JWT token
-    const token = jwt.sign(
-      {
-        email: userRecord.email,
+    const options = {
+      method: "GET",
+      url: "https://control.msg91.com/api/v5/otp/verify",
+      params: {
+        otp: otp, // OTP to verify
+        mobile: `91${mobile}`, // Ensure mobile number has the correct country code
       },
-      SECRET_KEY
-      // { expiresIn: "1h" } // Optionally set token expiration
-    );
-    const deleteSQL = "DELETE FROM login_otp WHERE email = ?";
-    const deleteResult = await new Promise((resolve, reject) => {
-      db.query(deleteSQL, [email], (err, result) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(result);
-      });
-    });
-
-    console.log("OTP verification successful:", userRecord);
-
-    // Send success response with JWT token
-    return res.status(200).json({
-      status: true,
-      message: "Login Successful",
-      token,
-      user: {
-        email: userRecord.email,
+      headers: {
+        authkey: "432528AQaOjCQFNn67125dc2P1", // Your Msg91 API key
       },
-    });
+    };
+    const { data } = await axios.request(options);
+
+    // Check if OTP is successfully verified
+    if (data.type === "success") {
+      const token = jwt.sign(
+        {
+          mobile,
+        },
+        SECRET_KEY
+        // { expiresIn: "1h" } // Optionally set token expiration
+      );
+      return res.status(200).json({
+        status: true,
+        message: "OTP matched successfully",
+        data: data,
+        token,
+        user: {
+          mobile: mobile,
+        },
+      });
+    } else {
+      // If the OTP did not match or there's another issue
+      return res.status(400).json({
+        status: false,
+        message: "OTP not Match",
+        error: data,
+      });
+    }
   } catch (error) {
-    console.error("Error verifying OTP:", error.message);
-
-    // Send error response to client
     return res.status(500).json({
       status: false,
       message: "OTP verification failed",
@@ -212,7 +278,6 @@ exports.verifyOtp = async (req, res) => {
     });
   }
 };
-
 exports.logoutCustomer = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
@@ -237,7 +302,7 @@ const orderReceivedMessage = async (messageData) => {
     campaignName: "order_received",
     templateParams: [String(userName), String(order_id)],
     media: {
-      url: "https://aisensy-project-media-library-stg.s3.ap-south-1.amazonaws.com/IMAGE/5f450b00f71d36faa1d02bc4/9884334_graffiti%20dsdjpg",
+      url: "https://raw.githubusercontent.com/Warlord09/annapoorna-images/refs/heads/main/order_received.png",
       filename: "APM",
     },
   };
@@ -267,6 +332,8 @@ const orderReceivedMessage = async (messageData) => {
         },
       }
     );
+    console.log("Order received message:");
+
     console.log(
       "Message sent to customer successfully:",
       customerResponse.data
@@ -288,6 +355,100 @@ const orderReceivedMessage = async (messageData) => {
       "Error sending message:",
       error.response ? error.response.data : error.message
     );
+  }
+};
+
+const sendOrderReceivedEmail = async (messageData) => {
+  try {
+    // HTML content of the email
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f4f4f4;
+                  margin: 0;
+                  padding: 0;
+              }
+              .email-container {
+                  max-width: 600px;
+                  margin: 0 auto;
+                  padding: 20px;
+                  border-radius: 8px;
+                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+              }
+              .email-header {
+                  text-align: center;
+                  background-color: #ff9800;
+                  padding: 10px;
+                  border-radius: 8px 8px 0 0;
+              }
+              .email-header h1 {
+                  color: #fc5757;
+                  margin: 0;
+              }
+              .email-body {
+                  padding: 20px;
+                  line-height: 1.6;
+              }
+              .email-body p {
+                  margin: 0 0 10px;
+              }
+              .email-footer {
+                  text-align: center;
+                  margin-top: 20px;
+                  font-size: 12px;
+                  color: #888888;
+              }
+              .btn {
+                  display: inline-block;
+                  background-color: #ff9800;
+                  color: #ffffff;
+                  padding: 10px 20px;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  margin-top: 10px;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="email-container">
+              <div class="email-header">
+                  <h1>Annapoorna Mithai</h1>
+              </div>
+              <div class="email-body">
+                  <p>Hi <strong>${messageData.userName}</strong>,</p>
+                  <p>We're happy to let you know that we've received your order with the Order ID: <strong>${messageData.order_id}</strong>.</p>
+                  <p>You can check the details of your order by clicking the button below:</p>
+                  <p><a href="https://www.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
+                  <p>Thank you for choosing <strong>Annapoorna Mithai</strong>! We truly appreciate your trust in us and are excited to serve you.</p>
+              </div>
+              <div class="email-footer">
+                  <p>If you have any questions, feel free to reach out.</p>
+                  <p>&copy; 2024 Annapoorna Mithai</p>
+              </div>
+          </div>
+      </body>
+      </html>
+      `;
+
+    // Email options
+    const mailOptions = {
+      from: process.env.GMAIL_USER, // Sender address
+      to: messageData.email, // Receiver's email
+      subject: "Order Status Update: We’ve Received Your Order!",
+      html: emailHtml, // HTML email body
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log("Order received email sent successfully");
+  } catch (error) {
+    console.error("Error sending order received email:", error);
   }
 };
 
@@ -613,6 +774,9 @@ exports.verifyOrder = async (req, res) => {
     delivery,
     user_mobile,
     preorderDate,
+    sweetGST,
+    savoriesGST,
+    state,
   } = req.body;
 
   console.log("body in verify order route:", req.body);
@@ -621,7 +785,6 @@ exports.verifyOrder = async (req, res) => {
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
     .update(`${razorpayOrderId}|${paymentId}`)
     .digest("hex");
-
   const finalTotalAmount = Number(totalAmount) + Number(gst) + Number(delivery);
 
   if (generatedSignature === razorpaySignature) {
@@ -633,7 +796,7 @@ exports.verifyOrder = async (req, res) => {
       const isCancel = true;
       const cancellation = isCancel ? 1 : 0;
       const sql =
-        "INSERT INTO customer_orders (transaction_id, name, mobile, address,order_items,total_price,created_at,preorder_date,payment_status,order_status,user_mobile,customer_cancellation,razorpay_payment_id,razorpay_order_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        "INSERT INTO customer_orders (transaction_id, name, mobile, address,order_items,total_price,received_date,preorder_date,payment_status,order_status,user_mobile,customer_cancellation,razorpay_payment_id,razorpay_order_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
       const result = await new Promise((resolve, reject) => {
         db.query(
           sql,
@@ -672,12 +835,18 @@ exports.verifyOrder = async (req, res) => {
         });
       });
 
+      let totalQuantity = 0;
+      orderItems.forEach((item) => {
+        totalQuantity += item.quantity;
+      });
+      const billdate = currentDate.toISOString().split("T")[0];
+      const billtime = currentDate.toTimeString().split(" ")[0];
       const order_id = resultId[0].order_id;
       const order = {
         orderIdrec: order_id,
         orderDate: currentDate,
         preOrderDate: preOrderDate,
-        paymentMethod: "Online",
+        paymentMethod: "Paid",
         customerName: userName,
         customerAddress: address,
         customerMobile: mobile,
@@ -685,209 +854,291 @@ exports.verifyOrder = async (req, res) => {
         orderItems: orderItems,
         itemTotal: totalAmount,
         finalAmount: finalTotalAmount,
+        billdate,
+        billtime,
+        totalQuantity,
+        sweetGST,
+        savoriesGST,
+        delivery,
+        gst,
       };
-      // const html = await ejs.renderFile(
-      //   path.join(__dirname, "views", "bill.ejs"),
-      //   { order }
-      // );
+      const firstPagehtml = await ejs.renderFile(
+        path.join(__dirname, "views", "bill.ejs"),
+        { order }
+      );
 
-      // Launch Puppeteer browser
-      // const browser = await puppeteer.launch({
-      //   headless: true,
-      //   args: ['--no-sandbox', '--disable-setuid-sandbox'],  // Required for Render environment
-      // });
-      // const page = await browser.newPage();
+      const secondData = {
+        customerAddress: address,
+        orderIdrec: order_id,
+        customerName: userName,
+        customerMobile: mobile,
+      };
+      console.log("secons page");
+      console.log(secondData);
+      const secondPageHtml = await ejs.renderFile(
+        path.join(__dirname, "views", "addressPage.ejs"),
+        { secondData }
+      );
 
-      // // Set HTML content to Puppeteer page
-      // await page.setContent(html, { waitUntil: "networkidle0" });
+      const browser = await puppeteer.launch({
+        executablePath: process.env.CHROME_BIN, // specify the path to your local Chromium if in development
+        headless: true,
+        timeout: 60000,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--headless",
+          "--disable-gpu",
+        ], // additional arguments to help in some environments
+      });
 
-      // // Generate PDF from the page content
-      // const pdfBuffer = await page.pdf({
-      //   format: "A5",
-      //   printBackground: false,
-      // });
+      const page = await browser.newPage();
 
-      // // Close Puppeteer browser
-      // await browser.close();
+      const combinedHtml = `
+        ${firstPagehtml}
+        <div style="page-break-after: always;"></div>
+        ${secondPageHtml}
+        `;
+      // Set HTML content to Puppeteer page
+      await page.setContent(combinedHtml, { waitUntil: "networkidle0" });
+
+      // Generate PDF from the page content
+      const pdfBuffer = await page.pdf({
+        format: "A5",
+        printBackground: false,
+      });
+
+      // Close Puppeteer browser
+      await browser.close();
 
       // console.log("bill data:", billData);
 
-      // Configure Nodemailer for email sending
       console.log("gereating receipt");
+      // const billData = {
+      //   orderIdrec: order_id,
+      //   orderDate: currentDate,
+      //   preOrderDate: preOrderDate,
+      //   paymentMethod: "Online",
+      //   customerName: userName,
+      //   customerAddress: address,
+      //   customerMobile: mobile,
+      //   customerEmail: email,
+      //   orderItems: orderItems,
+      //   itemTotal: totalAmount,
+      //   finalAmount: finalTotalAmount,
+      // };
+      // const {
+      //   orderIdrec,
+      //   orderDate,
+      //   paymentMethod,
+      //   customerName,
+      //   customerAddress,
+      //   customerMobile,
+      //   customerEmail,
+      //   itemTotal,
+      //   finalAmount,
+      // } = billData;
 
-      const billData = {
-        orderIdrec: order_id,
-        orderDate: currentDate,
-        preOrderDate: preOrderDate,
-        paymentMethod: "Online",
-        customerName: userName,
-        customerAddress: address,
-        customerMobile: mobile,
-        customerEmail: email,
-        orderItems: orderItems,
-        itemTotal: totalAmount,
-        finalAmount: finalTotalAmount,
-      };
-      const {
-        orderIdrec,
-        orderDate,
-        paymentMethod,
-        customerName,
-        customerAddress,
-        customerMobile,
-        customerEmail,
-        itemTotal,
-        finalAmount,
-      } = billData;
+      // console.log("bill data:", billData);
+      // console.log("Order Items");
+      // console.log(orderItems);
+      //     const receipt = ` <!DOCTYPE html>
+      // <html lang="en">
+      //   <head>
+      //     <meta charset="UTF-8" />
+      //     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      //     <title>Invoice</title>
+      //     <style>
+      //       body {
+      //         font-family: Arial, sans-serif;
+      //         margin: 0;
+      //         padding: 20px;
+      //         background-color: #f4f4f4;
+      //         font-size: 8px;
+      //       }
+      //       .invoice {
+      //         background-color: #fff;
+      //         padding: 15px;
+      //         margin: 0 auto;
+      //         max-width: 500px;
+      //         border-radius: 8px;
+      //         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      //       }
+      //       .details-container {
+      //         display: flex;
+      //         gap:40px
+      //       }
+      //       .order-details {
+      //         width: 40%;
+      //       }
+      //       .company-details {
+      //         width: 50%;
+      //       }
+      //       .order-summary table {
+      //         width: 100%;
+      //         border-collapse: collapse;
+      //       }
+      //       .line {
+      //         border-bottom: 1px solid #000;
+      //       }
+      //       .order-summary th,
+      //       .order-summary td {
+      //         padding: 6px;
+      //         text-align: left;
+      //       }
+      //       .order-summary tfoot td {
+      //         font-weight: bold;
+      //       }
+      //       .lineup {
+      //         border-top: 1px solid #000;
+      //       }
+      //       .order-summary tfoot tr:last-child td {
+      //         font-size: 1.1em;
+      //       }
+      //       .right-align {
+      //          text-align: right;
+      //       }
+      //     </style>
+      //   </head>
+      //   <body>
+      //     <div class="invoice">
+      //       <div class="details-container">
+      //         <div class="company-details">
+      //           <h3>Annapoorna Mithai</h3>
+      //           <p>
+      //             Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
+      //             Contact: annapoornamithai@gmail.com  <br/>
+      //             GSTIN - 33BCTPA8028E2ZP
+      //           </p>
+      //         </div>
+      //         <div class="order-details">
+      //           <h3>Order details</h3>
+      //           <p>Order Id : ${orderIdrec}</p>
+      //           <p>Order Date : ${orderDate}</p>
+      //           <p>Payment: ${paymentMethod}</p>
+      //           ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
+      //         </div>
+      //       </div>
+      //       <hr />
+      //       <div >
+      //         <div class="customer-details">
+      //           <h3>Customer details</h3>
+      //           <p>
+      //             Name: ${customerName}<br />
+      //             Address: ${customerAddress}<br />
+      //             Mobile: ${customerMobile}<br />
+      //             Email: ${customerEmail}
+      //           </p>
+      //         </div>
+      //       </div>
+      //       <div class="order-summary">
+      //         <h3>Order summary</h3>
+      //         <hr />
+      //         <table>
+      //           <thead>
+      //             <tr class="line">
+      //               <th>Item</th>
+      //               <th>Qty</th>
+      //               <th>Price/Qty</th>
+      //               <th>GST</th>
+      //               <th>Amount</th>
+      //             </tr>
+      //           </thead>
+      //           <tbody>
+      //             ${orderItems
+      //               .map(
+      //                 (item) => `
+      //               <tr>
+      //                 <td>${item.name}</td>
+      //                 <td>${item.quantity}</td>
+      //                 <td>₹${item.price}</td>
+      //                 <td>₹${(item.price * item.quantity * item.gst) / 100}  (${
+      //                   item.gst
+      //                 }%)</td>
+      //                 <td>₹${(
+      //                   item.price * item.quantity +
+      //                   (item.price * item.quantity * item.gst) / 100
+      //                 ).toFixed(2)}</td>
+      //               </tr>
+      //             `
+      //               )
+      //               .join("")}
+      //           </tbody>
+      //           <tfoot>
+      //             <tr class="lineup">
+      //               <td>Total</td>
+      //               <td colspan="2">${totalQuantity}</td>
+      //               <td>₹${gst}</td>
+      //               <td><strong>₹${(Number(finalAmount) - Number(delivery)).toFixed(
+      //                 2
+      //               )}</strong></td>
+      //             </tr>
+      //             <tr class="lineup">
+      //               <td colspan="3"></td>
+      //               <td >Sub Total</td>
+      //               <td>${(
+      //                 Number(finalAmount) -
+      //                 Number(gst) -
+      //                 Number(delivery)
+      //               ).toFixed(2)}</td>
+      //             </tr>
+      //             <tr class="lineup">
+      //               <td colspan="3"></td>
+      //               <td>CGST @2.5%</td>
+      //               <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
+      //             </tr>
+      //             <tr class="lineup">
+      //               <td colspan="3"></td>
+      //               <td>SGST @2.5%</td>
+      //               <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
+      //             </tr>
+      //             <tr class="lineup">
+      //               <td colspan="3"></td>
+      //               <td>CGST @6%</td>
+      //               <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
+      //             </tr>
+      //             <tr class="lineup">
+      //               <td colspan="3"></td>
+      //               <td>SGST @6%</td>
+      //               <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
+      //             </tr>
+      //             <tr class="lineup">
+      //             <td colspan="3"></td>
+      //               <td>Delivery</td>
+      //               <td>₹${delivery}</td>
+      //             </tr>
+      //             <tr class="lineup">
+      //               <td colspan="3"></td>
+      //               <td><strong>Total</strong></td>
+      //               <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
+      //             </tr>
+      //           </tfoot>
+      //         </table>
+      //       </div>
+      //     </div>
+      //   </body>
+      // </html>`;
 
-      console.log("bill data:", billData);
-      const receipt = ` <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Invoice</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 20px;
-          background-color: #f4f4f4;
-          font-size: 8px;
-        }
-        .invoice {
-          background-color: #fff;
-          padding: 15px;
-          margin: 0 auto;
-          max-width: 500px;
-          border-radius: 8px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .details-container {
-          display: flex;
-          justify-content: space-between;
-        }
-        .order-details {
-          width: 48%;
-        }
-        .order-summary table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .line {
-          border-bottom: 1px solid #000;
-        }
-        .order-summary th,
-        .order-summary td {
-          padding: 6px;
-          text-align: left;
-        }
-        .order-summary tfoot td {
-          font-weight: bold;
-        }
-        .lineup {
-          border-top: 1px solid #000;
-        }
-        .order-summary tfoot tr:last-child td {
-          font-size: 1.1em;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="invoice">
-        <div class="company-details">
-          <h3>Annapoorna Mithai</h3>
-          <p>
-            Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
-            Contact: annapoornamithai@gmail.com           GSTIN - 33BCTPA8028E2ZP
-          </p>
-        </div>
-        <hr />
-        <div class="details-container">
-          <div class="order-details">
-            <h3>Order details</h3>
-            <p>Order Id : ${orderIdrec}</p>
-            <p>Order Date : ${orderDate}</p>
-            <p>Payment: ${paymentMethod}</p>
-            ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
-          </div>
-          <div class="customer-details">
-            <h3>Customer details</h3>
-            <p>
-              Name: ${customerName}<br />
-              Address: ${customerAddress}<br />
-              Mobile: ${customerMobile}<br />
-              Email: ${customerEmail}
-            </p>
-          </div>
-        </div>
-        <div class="order-summary">
-          <h3>Order summary</h3>
-          <hr />
-          <table>
-            <thead>
-              <tr class="line">
-                <th>Item</th>
-                <th>Qty</th>
-                <th>GST %</th>
-                <th>GST ₹</th>
-                <th>Price/Qty</th>
-                <th>Total Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${orderItems
-                .map(
-                  (item) => `
-                <tr>
-                  <td>${item.name}</td>
-                  <td>${item.quantity}</td>
-                  <td>${item.gst}</td>
-                  <td>${(item.price * item.gst) / 100}</td>
-                  <td>₹${(Number(item.price) / item.quantity).toFixed(2)}</td>
-                  <td>₹${item.price}</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-            <tfoot>
-              <tr class="lineup">
-                <td colspan="5">Item Total</td>
-                <td>₹${itemTotal}</td>
-              </tr>
-              <tr class="line">
-                <td colspan="5">Total GST</td>
-                <td>₹${gst}</td>
-              </tr>
-              <tr class="line">
-                <td colspan="5">Delivery</td>
-                <td>₹${delivery}</td>
-              </tr>
-              <tr>
-                <td colspan="5"><strong>Total</strong></td>
-                <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </body>
-  </html>`;
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_PASS,
-        },
-      });
+      // const transporter = nodemailer.createTransport({
+      //   service: "gmail",
+      //   auth: {
+      //     user: process.env.GMAIL_USER,
+      //     pass: process.env.GMAIL_PASS,
+      //   },
+      // });
 
       const mailOptions = {
         from: process.env.GMAIL_USER,
         to: [email, process.env.GMAIL_USER],
         subject: `Invoice - Order ${order_id}`,
         text: `Dear ${userName},\n\n Please find attached the invoice for your recent purchase.\n\nThank you for shopping with us!`,
-        html: receipt,
+        attachments: [
+          {
+            filename: `invoice ${order_id}.pdf`, // File name to display in the email
+            content: pdfBuffer, // PDF content read from the file
+            contentType: "application/pdf", // MIME type for PDFs
+          },
+        ],
       };
 
       // Send email with the PDF attachment
@@ -903,9 +1154,10 @@ exports.verifyOrder = async (req, res) => {
         adminMobile: process.env.ADMIN_MOBILE_AISENSY,
         userName,
         order_id,
+        email,
       };
-
       orderReceivedMessage(messageData);
+      sendOrderReceivedEmail(messageData);
       res
         .status(200)
         .json({ status: true, message: "Payment Successful and email sent" });
@@ -923,15 +1175,16 @@ exports.sendContactUs = async (req, res) => {
     const { name, mobile, message } = req.body;
 
     // Create a transport object with Gmail configuration
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.GMAIL_USER,
+    //     pass: process.env.GMAIL_PASS,
+    //   },
+    // });
 
     // Define the HTML content for the email
+
     const htmlContent = `
       <html>
       <head>
@@ -1059,13 +1312,13 @@ exports.webhook = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
   try {
-    const { email } = req.query;
+    const { mobile } = req.query;
     console.log("In get order");
     console.log(req.query);
-    console.log(email);
+    console.log(mobile);
 
     // Check if email is provided
-    if (!email) {
+    if (!mobile) {
       return res.status(400).json({
         status: false,
         message: "email is required to fetch orders",
@@ -1076,7 +1329,7 @@ exports.getOrders = async (req, res) => {
     // Check if there are no orders found
 
     const result = await new Promise((resolve, reject) => {
-      db.query(sql, [email], (err, result) => {
+      db.query(sql, [mobile], (err, result) => {
         if (err) {
           return reject(err);
         }
@@ -1102,7 +1355,7 @@ const orderCancelledMessage = async (messageData) => {
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
     media: {
-      url: "https://aisensy-project-media-library-stg.s3.ap-south-1.amazonaws.com/IMAGE/5f450b00f71d36faa1d02bc4/9884334_graffiti%20dsdjpg",
+      url: "https://raw.githubusercontent.com/Warlord09/annapoorna-images/refs/heads/main/order_cancelled.png",
       filename: "APM",
     },
   };
@@ -1117,6 +1370,8 @@ const orderCancelledMessage = async (messageData) => {
         },
       }
     );
+    console.log("Order cancelled message:");
+
     console.log("Message sent successfully:", response.data);
   } catch (error) {
     console.error(
@@ -1136,7 +1391,7 @@ const refundInitiatedMessage = async (messageData) => {
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
     media: {
-      url: "https://aisensy-project-media-library-stg.s3.ap-south-1.amazonaws.com/IMAGE/5f450b00f71d36faa1d02bc4/9884334_graffiti%20dsdjpg",
+      url: "https://raw.githubusercontent.com/Warlord09/annapoorna-images/refs/heads/main/refund_initiated.png",
       filename: "APM",
     },
   };
@@ -1151,6 +1406,8 @@ const refundInitiatedMessage = async (messageData) => {
         },
       }
     );
+    console.log("Refund initiated message:");
+
     console.log("Message sent successfully:", response.data);
   } catch (error) {
     console.error(
@@ -1165,7 +1422,7 @@ exports.cancelOrder = async (req, res) => {
     console.log("In cancel order");
     console.log(req.body);
     const cancelSQL =
-      "UPDATE customer_orders SET order_status = ?,customer_cancellation WHERE order_id = ?";
+      "UPDATE customer_orders SET order_status = ?,customer_cancellation = ? WHERE order_id = ?";
     const updateResult = await new Promise((resolve, reject) => {
       db.query(cancelSQL, ["cancelled", 0, order_id], (err, result) => {
         if (err) {
@@ -1179,7 +1436,7 @@ exports.cancelOrder = async (req, res) => {
       console.log(authToken);
       console.log("refund hit");
       const response = axios.post(
-        "https://annapoorna-test-backend.onrender.com/customers/refund-order",
+        "https://www.annapoornamithai.com/customers/refund-order",
         { order_id },
         {
           headers: {
