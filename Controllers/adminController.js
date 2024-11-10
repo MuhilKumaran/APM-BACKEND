@@ -167,7 +167,7 @@ const sendOrderProcessingEmail = async (messageData) => {
               <p>
                 You can check the details of your order by clicking the button below:
               </p>
-              <p><a href="https://www.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
+              <p><a href="http://www.tst.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
               <p>
                 Thank you for your patience and for choosing
                 <strong>Annapoorna Mithai</strong>!
@@ -633,6 +633,11 @@ const orderDeliveredMessage = async (messageData) => {
 exports.manageOrder = async (req, res) => {
   try {
     const { order_id, delivery_status } = req.body;
+    if (!order_id || !delivery_status) {
+      return res
+        .status(400)
+        .json({ status: false, message: "All Details Were Needed" });
+    }
     const dateField = {
       processing: "processing_date",
       shipped: "shipped_date",
@@ -707,6 +712,11 @@ exports.manageOrder = async (req, res) => {
 };
 exports.getOrdersByDeliveryStatus = async (req, res) => {
   const { deliveryStatus } = req.body;
+  if (deliveryStatus) {
+    return res
+      .status(400)
+      .json({ status: false, message: "All Details Were Needed" });
+  }
   try {
     const sql = "SELECT * FROM customer_orders WHERE order_status = ?";
     const result = await new Promise((resolve, reject) => {
@@ -791,6 +801,11 @@ const refundInitiatedMessage = async (messageData) => {
 };
 exports.cancelOrder = async (req, res) => {
   const { order_id } = req.body;
+  if (!order_id) {
+    return res
+      .status(400)
+      .json({ status: false, message: "All Details Were Needed" });
+  }
   try {
     const updateSQL =
       "UPDATE customer_orders SET order_status = ?,customer_cancellation=? WHERE order_id = ?";
@@ -804,7 +819,7 @@ exports.cancelOrder = async (req, res) => {
     });
     if (result.affectedRows > 0) {
       const response = axios.post(
-        "https://www.annapoornamithai.com/admin/refund-order",
+        "http://www.tst.annapoornamithai.com/admin/refund-order",
         { order_id }
       );
       if ((await response).status === 200) {
@@ -829,6 +844,11 @@ exports.cancelOrder = async (req, res) => {
 
 exports.refundOrder = async (req, res) => {
   const { order_id } = req.body;
+  if (!order_id) {
+    return res
+      .status(400)
+      .json({ status: false, message: "All Details Were Needed" });
+  }
   try {
     const refundSQL =
       "SELECT razorpay_payment_id, total_price , name, mobile FROM customer_orders WHERE order_id = ?";

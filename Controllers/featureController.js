@@ -67,6 +67,11 @@ const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/valu
 
 exports.checkPincode = async (req, res) => {
   const { pincode } = req.body;
+  if (!pincode) {
+    return res
+      .status(400)
+      .json({ status: false, message: "All Details Were Needed" });
+  }
   console.log(pincode);
   try {
     const response = await axios.get(url);

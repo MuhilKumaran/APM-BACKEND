@@ -18,7 +18,7 @@ router
   .route("/orders")
   .post(authenticate.authenticateCustomer, customerController.createOrder)
   .get(authenticate.authenticateCustomer, customerController.getOrders)
-  .patch(customerController.cancelOrder);
+  .patch(authenticate.authenticateCustomer,customerController.cancelOrder);
 
 router
   .route("/verify-order")
