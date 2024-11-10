@@ -121,17 +121,12 @@ const generateOTP = () => {
 
 exports.sendOTP = async (req, res) => {
   const { mobile } = req.body;
-  if (!mobile) {
-    return res
-      .status(400)
-      .json({ status: false, message: "All Details Were Needed" });
-  }
   try {
     const data = {
-      template_id: process.env.MSG_91_OTP_TEMPLATE, // Confirm this is the correct template ID
+      template_id: "67135ae3d6fc05172470aa12", // Confirm this is the correct template ID
       mobile: `91${mobile}`, // Ensure mobile includes country code (India: 91)
-      authkey: process.env.MSG_91_AUTH, // Your Msg91 API key
-      sender: process.env.MSG_91_SENDER, // Approved DLT sender ID (6 characters)                    // Use provided OTP or let Msg91 auto-generate
+      authkey: "432528AQaOjCQFNn67125dc2P1", // Your Msg91 API key
+      sender: "APMITX", // Approved DLT sender ID (6 characters)                    // Use provided OTP or let Msg91 auto-generate
       otp_length: "6", // Optional: Default OTP length is 6
     };
     const response = await axios.post(
@@ -140,7 +135,7 @@ exports.sendOTP = async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          authkey: process.env.MSG_91_AUTH,
+          authkey: "432528AQaOjCQFNn67125dc2P1",
         },
       }
     );
@@ -235,11 +230,6 @@ exports.sendOTP = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   const { otp, mobile } = req.body;
-  if (!otp || !mobile) {
-    return res
-      .status(400)
-      .json({ status: false, message: "All Details Were Needed" });
-  }
   try {
     const options = {
       method: "GET",
@@ -434,7 +424,7 @@ const sendOrderReceivedEmail = async (messageData) => {
                   <p>Hi <strong>${messageData.userName}</strong>,</p>
                   <p>We're happy to let you know that we've received your order with the Order ID: <strong>${messageData.order_id}</strong>.</p>
                   <p>You can check the details of your order by clicking the button below:</p>
-                  <p><a href="http://www.tst.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
+                  <p><a href="https://www.annapoornamithai.com/orders" class="btn">View Order Details</a></p>
                   <p>Thank you for choosing <strong>Annapoorna Mithai</strong>! We truly appreciate your trust in us and are excited to serve you.</p>
               </div>
               <div class="email-footer">
@@ -1183,11 +1173,6 @@ exports.verifyOrder = async (req, res) => {
 exports.sendContactUs = async (req, res) => {
   try {
     const { name, mobile, message } = req.body;
-    if (!name || !mobile || !message) {
-      return res
-        .status(400)
-        .json({ status: false, message: "All Details Were Needed" });
-    }
 
     // Create a transport object with Gmail configuration
     // const transporter = nodemailer.createTransport({
@@ -1336,7 +1321,7 @@ exports.getOrders = async (req, res) => {
     if (!mobile) {
       return res.status(400).json({
         status: false,
-        message: "mobile is required to fetch orders",
+        message: "email is required to fetch orders",
       });
     }
 
@@ -1434,11 +1419,6 @@ const refundInitiatedMessage = async (messageData) => {
 exports.cancelOrder = async (req, res) => {
   try {
     const { order_id } = req.body;
-    if (!order_id) {
-      return res
-        .status(400)
-        .json({ status: false, message: "All Details Were Needed" });
-    }
     console.log("In cancel order");
     console.log(req.body);
     const cancelSQL =
@@ -1456,7 +1436,7 @@ exports.cancelOrder = async (req, res) => {
       console.log(authToken);
       console.log("refund hit");
       const response = axios.post(
-        "http://www.tst.annapoornamithai.com/customers/refund-order",
+        "https://www.annapoornamithai.com/customers/refund-order",
         { order_id },
         {
           headers: {
@@ -1489,11 +1469,6 @@ exports.cancelOrder = async (req, res) => {
 exports.refundOrder = async (req, res) => {
   console.log("in refund route");
   const { order_id } = req.body;
-  if (!order_id) {
-    return res
-      .status(400)
-      .json({ status: false, message: "All Details Were Needed" });
-  }
   try {
     const refundSQL =
       "SELECT razorpay_payment_id, total_price, mobile, name FROM customer_orders WHERE order_id = ?";
