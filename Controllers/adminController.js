@@ -491,7 +491,7 @@ const orderProcessedMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "order_processed",
+    campaignName: "apm_order_processed_v2",
     destination: String("+91" + mobile), // Ensure mobile is a string
     userName: String(userName), // Ensure userName is a string
     templateParams: [
@@ -530,7 +530,7 @@ const orderShippedMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "order_shipped",
+    campaignName: "apm_order_shipped_v2",
     destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
@@ -566,7 +566,7 @@ const orderRejectedMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "order_rejected",
+    campaignName: "apm_order_rejected_v2",
     destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
@@ -601,7 +601,7 @@ const orderDeliveredMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "order_delivered",
+    campaignName: "apm_order_delivered_v2",
     destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
@@ -770,7 +770,7 @@ const refundInitiatedMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "refund_initiated",
+    campaignName: "apm_refund_initiated_v2",
     destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings

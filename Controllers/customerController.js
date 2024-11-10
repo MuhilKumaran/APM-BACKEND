@@ -309,7 +309,7 @@ const orderReceivedMessage = async (messageData) => {
 
   const commonData = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "order_received",
+    campaignName: "apm_order_received_bill_v2",
     templateParams: [String(userName), String(order_id)],
     media: {
       url: "https://raw.githubusercontent.com/Warlord09/annapoorna-images/refs/heads/main/order_received.png",
@@ -1365,7 +1365,7 @@ const orderCancelledMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "order_cancelled",
+    campaignName: "apm_order_cancelled_v2",
     destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
@@ -1401,7 +1401,7 @@ const refundInitiatedMessage = async (messageData) => {
 
   const data = {
     apiKey: process.env.AISENSY_KEY,
-    campaignName: "refund_initiated",
+    campaignName: "apm_refund_initiated_v2",
     destination: String("+91" + mobile), //  mobile is a string
     userName: String(userName), //  userName is a string
     templateParams: [String(userName), String(order_id)], // Array of template parameters must all be strings
