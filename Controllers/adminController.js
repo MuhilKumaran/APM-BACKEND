@@ -730,7 +730,6 @@ exports.manageOrder = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "Order status updated successfully",
-      orderData: updateResult, // Return the updated order data
     });
   } catch (error) {
     console.error("Error updating order status:", error);
