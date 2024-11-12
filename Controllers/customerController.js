@@ -1,13 +1,11 @@
 require("dotenv").config({ path: "../config.env" });
 const db = require("../Modules/mysql");
-const fs = require("fs");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = process.env.SECRET_KEY;
 const Razorpay = require("razorpay");
-const pdf = require("html-pdf");
 const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 const path = require("path");
@@ -54,73 +52,14 @@ exports.signupCustomer = async (req, res) => {
   }
 };
 // Function to generate a 6-digit OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
-// exports.sendOTP = async (req, res) => {
-//   const { email } = req.body;
-
-//   try {
-//     const otp = generateOTP();
-//     console.log(otp);
-
-//     const sql = `INSERT INTO login_otp (email, otp)
-//                  VALUES (?, ?)
-//                  ON DUPLICATE KEY UPDATE
-//                  otp = VALUES(otp)`;
-//     const result = await new Promise((resolve, reject) => {
-//       db.query(sql, [email, otp], (err, result) => {
-//         if (err) {
-//           return reject(err);
-//         }
-//         resolve(result);
-//       });
-//     });
-
-//     // Configure the email transport
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: process.env.GMAIL_USER,
-//         pass: process.env.GMAIL_PASS,
-//       },
-//     });
-
-//     // Read the HTML template
-//     const templatePath = path.join(__dirname, "otpTemplate.html");
-//     let htmlTemplate = fs.readFileSync(templatePath, "utf-8");
-
-//     htmlTemplate = htmlTemplate.replace("{{OTP}}", otp);
-
-//     // Send email
-//     const mailOptions = {
-//       from: process.env.GMAIL_USER,
-//       to: email,
-//       subject: "Your OTP for Login to Annapoorna Mithai",
-//       html: htmlTemplate,
-//     };
-
-//     await transporter.sendMail(mailOptions);
-
-//     console.log("OTP sent successfully via email");
-
-//     res.json({
-//       status: true,
-//       message: "OTP sent successfully",
-//       otp: otp, // Optionally return the OTP for testing purposes, but remove this in production
-//     });
-//   } catch (error) {
-//     console.error("Error sending OTP:", error.message);
-//     res.status(500).json({
-//       status: false,
-//       message: "Error sending OTP.",
-//     });
-//   }
-// };
 
 exports.sendOTP = async (req, res) => {
   const { mobile } = req.body;
+  if (!mobile) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Mobile Number is Required" });
+  }
   try {
     const data = {
       template_id: "67135ae3d6fc05172470aa12", // Confirm this is the correct template ID
@@ -160,76 +99,14 @@ exports.sendOTP = async (req, res) => {
     });
   }
 };
-// exports.verifyOtp = async (req, res) => {
-//   console.log("Incoming request:", req.body);
-
-//   const { email, otp } = req.body;
-
-//   try {
-//     const sql = "SELECT * FROM login_otp WHERE email = ?";
-
-//     const result = await new Promise((resolve, reject) => {
-//       db.query(sql, [email], (err, result) => {
-//         if (err) {
-//           return reject(err);
-//         }
-//         resolve(result);
-//       });
-//     });
-
-//     if (result.length === 0) {
-//       return res.status(404).json({ status: false, message: "OTP not found" });
-//     }
-
-//     const userRecord = result[0];
-//     // Validate the OTP
-//     if (userRecord.otp !== otp) {
-//       return res.status(400).json({ status: false, message: "Invalid OTP" });
-//     }
-
-//     // OTP is valid, generate JWT token
-// const token = jwt.sign(
-//   {
-//     email: userRecord.email,
-//   },
-//   SECRET_KEY
-// { expiresIn: "1h" } // Optionally set token expiration
-// );
-//     const deleteSQL = "DELETE FROM login_otp WHERE email = ?";
-//     const deleteResult = await new Promise((resolve, reject) => {
-//       db.query(deleteSQL, [email], (err, result) => {
-//         if (err) {
-//           return reject(err);
-//         }
-//         resolve(result);
-//       });
-//     });
-
-//     console.log("OTP verification successful:", userRecord);
-
-//     // Send success response with JWT token
-//     return res.status(200).json({
-//       status: true,
-//       message: "Login Successful",
-//       token,
-//       user: {
-//         email: userRecord.email,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error verifying OTP:", error.message);
-
-//     // Send error response to client
-//     return res.status(500).json({
-//       status: false,
-//       message: "OTP verification failed",
-//       error: error.message,
-//     });
-//   }
-// };
 
 exports.verifyOtp = async (req, res) => {
   const { otp, mobile } = req.body;
+  if (!mobile || !otp) {
+    return res
+      .status(400)
+      .json({ status: false, message: "All Fields are Required" });
+  }
   try {
     const options = {
       method: "GET",
@@ -532,283 +409,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// exports.verifyOrder = async (req, res) => {
-//   const {
-//     orderId,
-//     paymentId,
-//     razorpayOrderId,
-//     razorpaySignature,
-//     orderItems,
-//     totalAmount,
-//     email,
-//     userName,
-//     address,
-//     mobile,
-//     gst,
-//     delivery,
-//     user_mobile,
-//     preorderDate,
-//   } = req.body;
-
-//   console.log("body in verify order route:", req.body);
-//   console.log(orderItems);
-//   const generatedSignature = crypto
-//     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-//     .update(`${razorpayOrderId}|${paymentId}`)
-//     .digest("hex");
-
-//   const finalTotalAmount = Number(totalAmount) + Number(gst) + Number(delivery);
-
-//   if (generatedSignature === razorpaySignature) {
-//     try {
-//       console.log("Hash verified");
-//       const preOrderDate = preorderDate || null;
-//       const currentDate = new Date();
-//       // Fetch the number of documents in the 'orders' collection
-//       const isCancel = true;
-//       const cancellation = isCancel ? 1 : 0;
-//       const sql =
-//         "INSERT INTO customer_orders (transaction_id, name, mobile, address,order_items,total_price,created_at,preorder_date,payment_status,order_status,user_mobile,customer_cancellation,razorpay_payment_id,razorpay_order_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-//       const result = await new Promise((resolve, reject) => {
-//         db.query(
-//           sql,
-//           [
-//             orderId,
-//             userName,
-//             mobile,
-//             address,
-//             JSON.stringify(orderItems),
-//             finalTotalAmount,
-//             currentDate,
-//             preOrderDate,
-//             "paid",
-//             "received",
-//             user_mobile,
-//             cancellation,
-//             paymentId,
-//             razorpayOrderId,
-//           ],
-//           (err, result) => {
-//             if (err) {
-//               return reject(err);
-//             }
-//             resolve(result);
-//           }
-//         );
-//       });
-
-//       const sqlId = `SELECT order_id FROM customer_orders WHERE transaction_id = ?`;
-//       const resultId = await new Promise((resolve, reject) => {
-//         db.query(sqlId, [orderId], (err, result) => {
-//           if (err) {
-//             return reject(err);
-//           }
-//           resolve(result);
-//         });
-//       });
-
-//       const order_id = resultId[0].order_id;
-//       const billData = {
-//         orderIdrec: order_id,
-//         orderDate: currentDate,
-//         preOrderDate: preOrderDate,
-//         paymentMethod: "Online",
-//         customerName: userName,
-//         customerAddress: address,
-//         customerMobile: mobile,
-//         customerEmail: email,
-//         orderItems: orderItems,
-//         itemTotal: totalAmount,
-//         finalAmount: finalTotalAmount,
-//       };
-//       const {
-//         orderIdrec,
-//         orderDate,
-//         paymentMethod,
-//         customerName,
-//         customerAddress,
-//         customerMobile,
-//         customerEmail,
-//         itemTotal,
-//         finalAmount,
-//       } = billData;
-
-//       console.log("bill data:", billData);
-//       const recipt = ` <!DOCTYPE html>
-//   <html lang="en">
-//     <head>
-//       <meta charset="UTF-8" />
-//       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-//       <title>Invoice</title>
-//       <style>
-//         body {
-//           font-family: Arial, sans-serif;
-//           margin: 0;
-//           padding: 20px;
-//           background-color: #f4f4f4;
-//           font-size: 8px;
-//         }
-//         .invoice {
-//           background-color: #fff;
-//           padding: 15px;
-//           margin: 0 auto;
-//           max-width: 500px;
-//           border-radius: 8px;
-//           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-//         }
-//         .details-container {
-//           display: flex;
-//           justify-content: space-between;
-//         }
-//         .order-details {
-//           width: 48%;
-//         }
-//         .order-summary table {
-//           width: 100%;
-//           border-collapse: collapse;
-//         }
-//         .line {
-//           border-bottom: 1px solid #000;
-//         }
-//         .order-summary th,
-//         .order-summary td {
-//           padding: 6px;
-//           text-align: left;
-//         }
-//         .order-summary tfoot td {
-//           font-weight: bold;
-//         }
-//         .lineup {
-//           border-top: 1px solid #000;
-//         }
-//         .order-summary tfoot tr:last-child td {
-//           font-size: 1.1em;
-//         }
-//       </style>
-//     </head>
-//     <body>
-//       <div class="invoice">
-//         <div class="company-details">
-//           <h3>Annapoorna Mithai</h3>
-//           <p>
-//             Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
-//             Contact: annapoornamithai@gmail.com "&nbsp;" "&nbsp;" GSTIN - 33BCTPA8028E2ZP
-//           </p>
-//         </div>
-//         <hr />
-//         <div class="details-container">
-//           <div class="order-details">
-//             <h3>Order details</h3>
-//             <p>Order Id : ${orderIdrec}</p>
-//             <p>Order Date : ${orderDate}</p>
-//             <p>Payment: ${paymentMethod}</p>
-//             ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
-//           </div>
-//           <div class="customer-details">
-//             <h3>Customer details</h3>
-//             <p>
-//               Name: ${customerName}<br />
-//               Address: ${customerAddress}<br />
-//               Mobile: ${customerMobile}<br />
-//               Email: ${customerEmail}
-//             </p>
-//           </div>
-//         </div>
-//         <div class="order-summary">
-//           <h3>Order summary</h3>
-//           <hr />
-//           <table>
-//             <thead>
-//               <tr class="line">
-//                 <th>Item</th>
-//                 <th>Qty</th>
-//                 <th>Price</th>
-//                 <th>Total Amount</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               ${orderItems
-//                 .map(
-//                   (item) => `
-//                 <tr>
-//                   <td>${item.name}</td>
-//                   <td>${item.quantity}</td>
-//                   <td>₹${(Number(item.price) / item.quantity).toFixed(2)}</td>
-//                   <td>₹${item.price}</td>
-//                 </tr>
-//               `
-//                 )
-//                 .join("")}
-//             </tbody>
-//             <tfoot>
-//               <tr class="lineup">
-//                 <td colspan="3">Item Total</td>
-//                 <td>₹${itemTotal}</td>
-//               </tr>
-//               <tr class="line">
-//                 <td colspan="3">GST(12%)</td>
-//                 <td>₹${gst}</td>
-//               </tr>
-//               <tr class="line">
-//                 <td colspan="3">Delivery</td>
-//                 <td>₹${delivery}</td>
-//               </tr>
-//               <tr>
-//                 <td colspan="3"><strong>Total</strong></td>
-//                 <td><strong>₹${finalAmount}</strong></td>
-//               </tr>
-//             </tfoot>
-//           </table>
-//         </div>
-//       </div>
-//     </body>
-//   </html>`;
-
-//       // Configure Nodemailer for email sending
-//       const transporter = nodemailer.createTransport({
-//         service: "gmail",
-//         auth: {
-//           user: process.env.GMAIL_USER,
-//           pass: process.env.GMAIL_PASS,
-//         },
-//       });
-
-//       const mailOptions = {
-//         from: process.env.GMAIL_USER,
-//         to: [email, process.env.GMAIL_USER],
-//         subject: `Invoice - Order ${orderIdrec}`,
-//         text: `Dear ${userName},\n\n Please find attached the invoice for your recent purchase.\n\nThank you for shopping with us!`,
-//         html: recipt,
-//       };
-
-//       // Send email with the PDF attachment
-//       await new Promise((resolve, reject) => {
-//         transporter.sendMail(mailOptions, (error, info) => {
-//           if (error) return reject(error);
-//           resolve(info);
-//         });
-//       });
-
-//       const messageData = {
-//         mobile,
-//         adminMobile: process.env.ADMIN_MOBILE_AISENSY,
-//         userName,
-//         order_id,
-//       };
-
-//       orderReceivedMessage(messageData);
-//       res
-//         .status(200)
-//         .json({ status: true, message: "Payment Successful and email sent" });
-//     } catch (error) {
-//       console.log("Error processing order:", error);
-//       res.status(500).json({ status: false, error: "Failed to process order" });
-//     }
-//   } else {
-//     res.status(400).json({ status: false, error: "Invalid Payment signature" });
-//   }
-// };
-
 exports.verifyOrder = async (req, res) => {
   const {
     orderId,
@@ -965,219 +565,6 @@ exports.verifyOrder = async (req, res) => {
       // console.log("bill data:", billData);
 
       console.log("gereating receipt");
-      // const billData = {
-      //   orderIdrec: order_id,
-      //   orderDate: currentDate,
-      //   preOrderDate: preOrderDate,
-      //   paymentMethod: "Online",
-      //   customerName: userName,
-      //   customerAddress: address,
-      //   customerMobile: mobile,
-      //   customerEmail: email,
-      //   orderItems: orderItems,
-      //   itemTotal: totalAmount,
-      //   finalAmount: finalTotalAmount,
-      // };
-      // const {
-      //   orderIdrec,
-      //   orderDate,
-      //   paymentMethod,
-      //   customerName,
-      //   customerAddress,
-      //   customerMobile,
-      //   customerEmail,
-      //   itemTotal,
-      //   finalAmount,
-      // } = billData;
-
-      // console.log("bill data:", billData);
-      // console.log("Order Items");
-      // console.log(orderItems);
-      //     const receipt = ` <!DOCTYPE html>
-      // <html lang="en">
-      //   <head>
-      //     <meta charset="UTF-8" />
-      //     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      //     <title>Invoice</title>
-      //     <style>
-      //       body {
-      //         font-family: Arial, sans-serif;
-      //         margin: 0;
-      //         padding: 20px;
-      //         background-color: #f4f4f4;
-      //         font-size: 8px;
-      //       }
-      //       .invoice {
-      //         background-color: #fff;
-      //         padding: 15px;
-      //         margin: 0 auto;
-      //         max-width: 500px;
-      //         border-radius: 8px;
-      //         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      //       }
-      //       .details-container {
-      //         display: flex;
-      //         gap:40px
-      //       }
-      //       .order-details {
-      //         width: 40%;
-      //       }
-      //       .company-details {
-      //         width: 50%;
-      //       }
-      //       .order-summary table {
-      //         width: 100%;
-      //         border-collapse: collapse;
-      //       }
-      //       .line {
-      //         border-bottom: 1px solid #000;
-      //       }
-      //       .order-summary th,
-      //       .order-summary td {
-      //         padding: 6px;
-      //         text-align: left;
-      //       }
-      //       .order-summary tfoot td {
-      //         font-weight: bold;
-      //       }
-      //       .lineup {
-      //         border-top: 1px solid #000;
-      //       }
-      //       .order-summary tfoot tr:last-child td {
-      //         font-size: 1.1em;
-      //       }
-      //       .right-align {
-      //          text-align: right;
-      //       }
-      //     </style>
-      //   </head>
-      //   <body>
-      //     <div class="invoice">
-      //       <div class="details-container">
-      //         <div class="company-details">
-      //           <h3>Annapoorna Mithai</h3>
-      //           <p>
-      //             Annapoorna Mithai, 12/2, Ramnagar, Bypass road, Madurai <br />
-      //             Contact: annapoornamithai@gmail.com  <br/>
-      //             GSTIN - 33BCTPA8028E2ZP
-      //           </p>
-      //         </div>
-      //         <div class="order-details">
-      //           <h3>Order details</h3>
-      //           <p>Order Id : ${orderIdrec}</p>
-      //           <p>Order Date : ${orderDate}</p>
-      //           <p>Payment: ${paymentMethod}</p>
-      //           ${preOrderDate ? `<p>Pre-Order Date: ${preOrderDate}</p>` : ""}
-      //         </div>
-      //       </div>
-      //       <hr />
-      //       <div >
-      //         <div class="customer-details">
-      //           <h3>Customer details</h3>
-      //           <p>
-      //             Name: ${customerName}<br />
-      //             Address: ${customerAddress}<br />
-      //             Mobile: ${customerMobile}<br />
-      //             Email: ${customerEmail}
-      //           </p>
-      //         </div>
-      //       </div>
-      //       <div class="order-summary">
-      //         <h3>Order summary</h3>
-      //         <hr />
-      //         <table>
-      //           <thead>
-      //             <tr class="line">
-      //               <th>Item</th>
-      //               <th>Qty</th>
-      //               <th>Price/Qty</th>
-      //               <th>GST</th>
-      //               <th>Amount</th>
-      //             </tr>
-      //           </thead>
-      //           <tbody>
-      //             ${orderItems
-      //               .map(
-      //                 (item) => `
-      //               <tr>
-      //                 <td>${item.name}</td>
-      //                 <td>${item.quantity}</td>
-      //                 <td>₹${item.price}</td>
-      //                 <td>₹${(item.price * item.quantity * item.gst) / 100}  (${
-      //                   item.gst
-      //                 }%)</td>
-      //                 <td>₹${(
-      //                   item.price * item.quantity +
-      //                   (item.price * item.quantity * item.gst) / 100
-      //                 ).toFixed(2)}</td>
-      //               </tr>
-      //             `
-      //               )
-      //               .join("")}
-      //           </tbody>
-      //           <tfoot>
-      //             <tr class="lineup">
-      //               <td>Total</td>
-      //               <td colspan="2">${totalQuantity}</td>
-      //               <td>₹${gst}</td>
-      //               <td><strong>₹${(Number(finalAmount) - Number(delivery)).toFixed(
-      //                 2
-      //               )}</strong></td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td >Sub Total</td>
-      //               <td>${(
-      //                 Number(finalAmount) -
-      //                 Number(gst) -
-      //                 Number(delivery)
-      //               ).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>CGST @2.5%</td>
-      //               <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>SGST @2.5%</td>
-      //               <td>${(Number(sweetGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>CGST @6%</td>
-      //               <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td>SGST @6%</td>
-      //               <td>${(Number(savoriesGST) / 2).toFixed(2)}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //             <td colspan="3"></td>
-      //               <td>Delivery</td>
-      //               <td>₹${delivery}</td>
-      //             </tr>
-      //             <tr class="lineup">
-      //               <td colspan="3"></td>
-      //               <td><strong>Total</strong></td>
-      //               <td><strong>₹${Number(finalAmount).toFixed(2)}</strong></td>
-      //             </tr>
-      //           </tfoot>
-      //         </table>
-      //       </div>
-      //     </div>
-      //   </body>
-      // </html>`;
-
-      // const transporter = nodemailer.createTransport({
-      //   service: "gmail",
-      //   auth: {
-      //     user: process.env.GMAIL_USER,
-      //     pass: process.env.GMAIL_PASS,
-      //   },
-      // });
-
       const mailOptions = {
         from: process.env.GMAIL_USER,
         to: [email, process.env.GMAIL_USER],
@@ -1195,8 +582,11 @@ exports.verifyOrder = async (req, res) => {
       // Send email with the PDF attachment
       await new Promise((resolve, reject) => {
         transporter.sendMail(mailOptions, (error, info) => {
-          if (error) return reject(error);
-          resolve(info);
+          if (error) {
+            console.log("Error in sendingg Mail");
+          } else {
+            resolve(info);
+          }
         });
       });
 
@@ -1226,16 +616,11 @@ exports.sendContactUs = async (req, res) => {
   try {
     const { name, mobile, message } = req.body;
 
-    // Create a transport object with Gmail configuration
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail",
-    //   auth: {
-    //     user: process.env.GMAIL_USER,
-    //     pass: process.env.GMAIL_PASS,
-    //   },
-    // });
-
-    // Define the HTML content for the email
+    if (!name || !mobile || !message) {
+      return res
+        .status(400)
+        .json({ status: false, message: "All Fields are Required" });
+    }
 
     const htmlContent = `
       <html>
@@ -1369,11 +754,11 @@ exports.getOrders = async (req, res) => {
     console.log(req.query);
     console.log(mobile);
 
-    // Check if email is provided
+    // Check if mobile is provided
     if (!mobile) {
       return res.status(400).json({
         status: false,
-        message: "email is required to fetch orders",
+        message: "mobile is required to fetch orders",
       });
     }
 
@@ -1471,6 +856,11 @@ const refundInitiatedMessage = async (messageData) => {
 exports.cancelOrder = async (req, res) => {
   try {
     const { order_id } = req.body;
+    if (!order_id) {
+      return res
+        .status(400)
+        .json({ status: false, message: "order_id is required" });
+    }
     console.log("In cancel order");
     console.log(req.body);
     const cancelSQL =
@@ -1521,6 +911,11 @@ exports.cancelOrder = async (req, res) => {
 exports.refundOrder = async (req, res) => {
   console.log("in refund route");
   const { order_id } = req.body;
+  if (!order_id) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Order ID is required for Refund" });
+  }
   try {
     const refundSQL =
       "SELECT razorpay_payment_id, total_price, mobile, name FROM customer_orders WHERE order_id = ?";

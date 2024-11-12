@@ -67,6 +67,12 @@ exports.logoutAdmin = (req, res) => {
 exports.updateMenu = async (req, res) => {
   try {
     const { product_name, shelf_life } = req.body;
+
+    if (!product_name || !shelf_life) {
+      return res
+        .status(400)
+        .json({ status: false, message: "All details are Required" });
+    }
     // SQL query to update the shelf_life of the menu item
     const sql =
       "UPDATE menu_items SET product_info = JSON_SET(product_info, '$.shelf_life', ?) WHERE product_name = ?";
@@ -633,6 +639,11 @@ const orderDeliveredMessage = async (messageData) => {
 exports.manageOrder = async (req, res) => {
   try {
     const { order_id, delivery_status } = req.body;
+    if (!order_id || !delivery_status) {
+      return res
+        .status(400)
+        .json({ message: "Order id and delivery status are required." });
+    }
     const dateField = {
       processing: "processing_date",
       shipped: "shipped_date",
@@ -645,21 +656,45 @@ exports.manageOrder = async (req, res) => {
     // const currentDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
 
     // Extract the day, month, and year
-
-    const sql = `UPDATE customer_orders SET order_status = ?,customer_cancellation = ?,${date_update} = ? WHERE order_id = ?`;
-    console.log(sql);
-    const updateResult = await new Promise((resolve, reject) => {
-      db.query(
-        sql,
-        [delivery_status, cancellation, currentDate, order_id],
-        (err, result) => {
-          if (err) {
-            return reject(err);
+    if (delivery_status != "shipped") {
+      const sql = `UPDATE customer_orders SET order_status = ?,customer_cancellation = ?,${date_update} = ? WHERE order_id = ?`;
+      console.log(sql);
+      const updateResult = await new Promise((resolve, reject) => {
+        db.query(
+          sql,
+          [delivery_status, cancellation, currentDate, order_id],
+          (err, result) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(result);
           }
-          resolve(result);
-        }
-      );
-    });
+        );
+      });
+    } else {
+      const { tracking_url, consignment_number } = req.body;
+      const sql = `UPDATE customer_orders SET order_status = ?,customer_cancellation = ?,${date_update} = ?,tracking_url = ?,consignment_number = ? WHERE order_id = ?`;
+      console.log(sql);
+      const updateResult = await new Promise((resolve, reject) => {
+        db.query(
+          sql,
+          [
+            delivery_status,
+            cancellation,
+            currentDate,
+            tracking_url,
+            consignment_number,
+            order_id,
+          ],
+          (err, result) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(result);
+          }
+        );
+      });
+    }
 
     const selectsql = "SELECT * FROM customer_orders WHERE order_id = ?";
     const result = await new Promise((resolve, reject) => {
@@ -708,6 +743,11 @@ exports.manageOrder = async (req, res) => {
 exports.getOrdersByDeliveryStatus = async (req, res) => {
   const { deliveryStatus } = req.body;
   try {
+    if (!deliveryStatus) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Delivery Status Required" });
+    }
     const sql = "SELECT * FROM customer_orders WHERE order_status = ?";
     const result = await new Promise((resolve, reject) => {
       db.query(sql, [deliveryStatus], (err, result) => {
@@ -829,6 +869,11 @@ exports.cancelOrder = async (req, res) => {
 
 exports.refundOrder = async (req, res) => {
   const { order_id } = req.body;
+  if (order_id) {
+    return res
+      .status(400)
+      .json({ status: false, message: "Order Id is Required" });
+  }
   try {
     const refundSQL =
       "SELECT razorpay_payment_id, total_price , name, mobile FROM customer_orders WHERE order_id = ?";
