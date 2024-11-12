@@ -1,24 +1,24 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Invoice</title>
-    <!-- <link rel="stylesheet" href="/styles.css"> -->
+
     <style>
       body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 20px;
         background-color: #f4f4f4;
-        font-size: 8px; /* Reduce font size */
+        font-size: 8px; 
       }
 
       .invoice {
         background-color: #fff;
-        padding: 15px; /* Reduce padding */
+        padding: 15px; 
         margin: 0 auto;
-        max-width: 500px; /* Reduce max width */
+        max-width: 500px;
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
@@ -28,7 +28,7 @@
       }
 
       .order-details {
-        width: 48%; /* Adjust width to fit side by side */
+        width: 48%; 
       }
 
       .order-summary table {
@@ -36,16 +36,14 @@
         border-collapse: collapse;
       }
 
-      /* .order-summary table, .order-summary th, .order-summary td {
-    border: 1px solid #ddd;
-} */
+      
       .line {
         border-bottom: 1px solid #000;
       }
 
       .order-summary th,
       .order-summary td {
-        padding: 6px; /* Reduce padding */
+        padding: 6px; 
         text-align: left;
       }
 
@@ -56,7 +54,7 @@
         border-top: 1px solid #000;
       }
       .order-summary tfoot tr:last-child td {
-        font-size: 1.1em; /* Adjust total font size */
+        font-size: 1.1em; 
       }
     </style>
   </head>
@@ -122,7 +120,7 @@
             <% }); %>
           </tbody>
           <tfoot>
-            <!-- <tr class="lineup">
+            <tr class="lineup">
               <td colspan="3">Item Total</td>
               <td>₹<%= order.itemTotal %></td>
             </tr>
@@ -133,10 +131,191 @@
             <tr class="line">
               <td colspan="3">Delivery</td>
               <td>₹<%= order.delivery %></td>
-            </tr> -->
+            </tr>
             <tr class="lineup">
               <td colspan="3"><strong>Total</strong></td>
               <td><strong>₹<%= order.finalAmount %></strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+        font-size: 8px;
+      }
+      .invoice {
+        background-color: #fff;
+        padding: 15px;
+        margin: 0 auto;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .details-container {
+        display: flex;
+        gap: 40px;
+      }
+      .order-details {
+        width: 40%;
+      }
+      .company-details {
+        width: 50%;
+      }
+      .order-summary table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .line {
+        border-bottom: 1px solid #000;
+      }
+      .order-summary th,
+      .order-summary td {
+        padding: 6px;
+        text-align: left;
+      }
+      .order-summary tfoot td {
+        font-weight: bold;
+      }
+      .lineup {
+        border-top: 1px solid #000;
+      }
+      .order-summary tfoot tr:last-child td {
+        font-size: 1.1em;
+      }
+      .right-align {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice">
+      <div class="details-container">
+        <div class="company-details">
+          <h3>AnnapoornaMithai Sweets & Bakery</h3>
+          <p>
+            12/2, Ramnagar, Bypass road, Madurai <br />
+            Contact: annapoornamithai@gmail.com <br />
+            GSTIN - 33BCTPA8028E2ZP
+          </p>
+        </div>
+        <div class="order-details">
+          <h3>Order details</h3>
+          <p>Order Id : <%= order.orderIdrec %></p>
+          <p>Order Date : <%= order.billdate %></p>
+          <p>Order Time : <%= order.billtime %></p>
+          <p>Payment Status: <%= order.paymentMethod %></p>
+          <% if (order.preOrderDate) { %>
+          <p>Pre-Order Date: <%= order.preOrderDate %></p>
+          <% } %>
+        </div>
+      </div>
+      <hr />
+      <div>
+        <div class="customer-details">
+          <h3>Customer details</h3>
+          <p>
+            Name: <%= order.customerName %><br />
+            Address: <%= order.customerAddress %><br />
+            Mobile: <%= order.customerMobile %><br />
+            Email: <%= order.customerEmail %>
+          </p>
+        </div>
+      </div>
+      <div class="order-summary">
+        <h3>Order summary</h3>
+        <hr />
+        <table>
+          <thead>
+            <tr class="line">
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price/Qty</th>
+              <th>GST</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.orderItems.forEach(function(item) { %>
+            <tr>
+              <td><%= item.name %> (<%=item.weight %>)</td>
+              <td><%= item.quantity %></td>
+              <td>₹<%= item.price %></td>
+              <td>
+                ₹<%= (item.price * item.quantity * item.gst) / 100 %> (<%=
+                item.gst %>%)
+              </td>
+              <td>
+                ₹<%= (item.price * item.quantity + (item.price * item.quantity *
+                item.gst) / 100).toFixed(2) %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+          <tfoot>
+            <tr class="lineup">
+              <td>Total</td>
+              <td colspan="2"><%= order.totalQuantity %></td>
+              <td>₹<%= order.gst %></td>
+              <td>
+                <strong
+                  >₹<%= (Number(order.finalAmount) -
+                  Number(order.delivery)).toFixed(2) %></strong
+                >
+              </td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td>Sub Total</td>
+              <td>
+                ₹<%= (Number(order.finalAmount) - Number(order.gst) -
+                Number(order.delivery)).toFixed(2) %>
+              </td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td>CGST @2.5%</td>
+              <td>₹<%= (Number(order.sweetGST) / 2).toFixed(2) %></td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td>SGST @2.5%</td>
+              <td>₹<%= (Number(order.sweetGST) / 2).toFixed(2) %></td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td>CGST @6%</td>
+              <td>₹<%= (Number(order.savoriesGST) / 2).toFixed(2) %></td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td>SGST @6%</td>
+              <td>₹<%= (Number(order.savoriesGST) / 2).toFixed(2) %></td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td>Delivery</td>
+              <td>₹<%= order.delivery %></td>
+            </tr>
+            <tr class="lineup">
+              <td colspan="3"></td>
+              <td><strong>Total</strong></td>
+              <td>
+                <strong>₹<%= Number(order.finalAmount).toFixed(2) %></strong>
+              </td>
             </tr>
           </tfoot>
         </table>

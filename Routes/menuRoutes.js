@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const menuController = require("../Controllers/menuContoller");
+const menuController = require("../Controllers/menuController");
 
-router.route("/").get(menuController.getMenu)
+router.route("/menuItems").get(menuController.getMenu)
 
 module.exports=router;
