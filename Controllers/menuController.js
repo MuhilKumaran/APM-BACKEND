@@ -12,18 +12,57 @@ exports.getMenu = async (req, res, next) => {
     const data = response.data.values;
 
     // Format the data as required
+    const formatWeight = (weights) => {
+      return weights.map((weight) => {
+        JSON.parse(weight);
+      });
+    };
+    // const formattedData = data.slice(1).map((item) => ({
+    //   hsn_code: item[0], // "21069099"
+    //   category: item[1], // "Sweets"
+    //   name: item[2], // "Kaju Katli | Kaju Barfi | Diamond Sweet"
+    //   description: item[3], // "Crispy Cashew nuts soaked then grinded into fine dough and elegantly served with pure silver leaf."
+    //   availability: item[4], // "Available"
+    //   mrp: JSON.parse(item[5]), // {250G: '326', 500G: '651', 1KG: '1302'}
+    //   selling_price: JSON.parse(item[6]), // {250G: '310', 500G: '620', 1KG: '1240'}
+    //   discount_percent: item[7], // "5"
+    //   life: item[8], // "10 Days"
+    //   image: item[9].split(","), // "[img1,img2]"
+    //   gst: item[10],
+    //   weights: item[11].split(",,"),
+    // }));
     const formattedData = data.slice(1).map((item) => ({
       hsn_code: item[0], // "21069099"
       category: item[1], // "Sweets"
-      product_name: item[2], // "Kaju Katli | Kaju Barfi | Diamond Sweet"
+      name: item[2], // "Kaju Katli | Kaju Barfi | Diamond Sweet"
       description: item[3], // "Crispy Cashew nuts soaked then grinded into fine dough and elegantly served with pure silver leaf."
       availability: item[4], // "Available"
       mrp: JSON.parse(item[5]), // {250G: '326', 500G: '651', 1KG: '1302'}
       selling_price: JSON.parse(item[6]), // {250G: '310', 500G: '620', 1KG: '1240'}
       discount_percent: item[7], // "5"
-      shelf_life: item[8], // "10 Days"
-      images: item[9].split(","), // "[img1,img2]"
+      life: item[8], // "10 Days"
+      image: item[9].split(","), // "[img1,img2]"
       gst: item[10],
+      weights: item[11]
+        .split(",,")
+        .map((weightStr) => {
+          // Format and parse each weight entry as JSON
+          try {
+            const formattedStr = weightStr
+              .replace(/(\w+):/g, '"$1":') // Quote keys
+              .replace(/:\s*([\w\s]+)/g, (match, p1) => {
+                // Add quotes to values with spaces or non-numeric characters
+                return p1.trim().match(/^\d+$/)
+                  ? `: ${p1.trim()}`
+                  : `: "${p1.trim()}"`;
+              });
+            return JSON.parse(formattedStr);
+          } catch (e) {
+            console.error(`Error parsing weight entry: ${weightStr}`, e);
+            return null; // Handle any invalid entries
+          }
+        })
+        .filter(Boolean), // Remove any null entries from the array
     }));
 
     // Send the formatted data as response
